@@ -6,6 +6,7 @@ import FloatingBall from "./pages/FloatingBall";
 import Wallpaper from "./pages/Wallpaper";
 import StatusBarWidget from "./pages/StatusBarWidget";
 import ScreenCapture from "./pages/ScreenCapture";
+import FloatingBallWidget from "./pages/FloatingBallWidget";
 import "./App.css";
 
 function App() {
@@ -27,6 +28,7 @@ function App() {
             </TrayWrapper>
           }
         />
+        <Route path="/floating-widget" element={<FloatingBallWidget />} />
       </Routes>
     </HashRouter>
   );

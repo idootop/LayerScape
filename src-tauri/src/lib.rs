@@ -9,7 +9,6 @@ fn greet(name: &str) -> String {
 #[tauri::command]
 fn update_tray_icon(app: tauri::AppHandle, bytes: Vec<u8>) -> Result<(), String> {
     use tauri::image::Image;
-    use tauri::Manager;
 
     let image = Image::from_bytes(&bytes).map_err(|e| e.to_string())?;
 
@@ -36,6 +35,25 @@ pub fn run() {
             {
                 tray::create_tray(app.handle())?;
             }
+
+            let handle = app.handle().clone();
+            std::thread::spawn(move || {
+                use mouse_position::mouse_position::Mouse;
+                use std::time::Duration;
+                use tauri::Emitter;
+
+                loop {
+                    let position = Mouse::get_mouse_position();
+                    match position {
+                        Mouse::Position { x, y } => {
+                            let _ = handle.emit("mouse-pos", (x, y));
+                        }
+                        _ => {}
+                    }
+                    std::thread::sleep(Duration::from_millis(16));
+                }
+            });
+
             Ok(())
         })
         .on_window_event(|window, event| match event {

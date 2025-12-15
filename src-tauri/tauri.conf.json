@@ -28,6 +28,18 @@
         "visible": false,
         "skipTaskbar": true,
         "alwaysOnTop": true
+      },
+      {
+        "label": "floating-ball",
+        "url": "index.html#/floating-widget",
+        "width": 60,
+        "height": 60,
+        "shadow": false,
+        "alwaysOnTop": true,
+        "transparent": true,
+        "decorations": false,
+        "acceptFirstMouse": true,
+        "skipTaskbar": true
       }
     ],
     "security": {
