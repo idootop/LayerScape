@@ -1,5 +1,6 @@
 import { HashRouter, Routes, Route } from "react-router-dom";
 import Layout from "./components/Layout";
+import { TrayWrapper } from "./components/TrayWrapper";
 import Home from "./pages/Home";
 import FloatingBall from "./pages/FloatingBall";
 import Wallpaper from "./pages/Wallpaper";
@@ -18,6 +19,14 @@ function App() {
           <Route path="status-bar" element={<StatusBarWidget />} />
           <Route path="screen-capture" element={<ScreenCapture />} />
         </Route>
+        <Route
+          path="/tray"
+          element={
+            <TrayWrapper>
+              <Home />
+            </TrayWrapper>
+          }
+        />
       </Routes>
     </HashRouter>
   );
