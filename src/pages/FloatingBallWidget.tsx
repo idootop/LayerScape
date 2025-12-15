@@ -28,6 +28,7 @@ export default function FloatingBallWidget() {
       snapSide={snapSide}
       onMouseDown={handleDragStart}
       onMenuItemClick={handleMenuItemClick}
+      onCloseMenu={() => toggleMenu(false)}
     />
   );
 }

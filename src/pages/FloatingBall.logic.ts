@@ -207,6 +207,16 @@ export function useFloatingBallLogic() {
         let targetX = cx - expandedSize / 2;
         let targetY = cy - expandedSize / 2;
 
+        // 根据吸附状态调整展开方向，保持悬浮球在屏幕上的位置视觉不变
+        const currentSnapSide = snapSideRef.current;
+        if (currentSnapSide === "left") {
+          // 吸附左侧：窗口左边缘保持不变
+          targetX = pos.x;
+        } else if (currentSnapSide === "right") {
+          // 吸附右侧：窗口右边缘保持不变
+          targetX = pos.x + size.width - expandedSize;
+        }
+
         // 限制在屏幕内
         const monitor =
           monitors.find((m) => {

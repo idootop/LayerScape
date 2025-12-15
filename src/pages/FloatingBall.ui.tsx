@@ -8,6 +8,7 @@ interface FloatingBallUIProps {
   snapSide: SnapSide;
   onMouseDown: (e: React.MouseEvent) => void;
   onMenuItemClick: (action: string) => void;
+  onCloseMenu: () => void;
 }
 
 export function FloatingBallUI({
@@ -16,6 +17,7 @@ export function FloatingBallUI({
   snapSide,
   onMouseDown,
   onMenuItemClick,
+  onCloseMenu,
 }: FloatingBallUIProps) {
   // 菜单项配置
   const menuItems = [
@@ -40,9 +42,7 @@ export function FloatingBallUI({
       justifyContent: "center",
       userSelect: "none",
       border: "2px solid rgba(255,255,255,0.8)",
-      // transition: "all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
-      transition:
-        "transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease, width 0.3s ease, height 0.3s ease",
+      transition: "all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
       willChange: "transform",
       transform: "translateX(0)",
       opacity: 1,
@@ -127,31 +127,59 @@ export function FloatingBallUI({
     return style;
   };
 
+  const getContainerStyle = (): React.CSSProperties => {
+    const base: React.CSSProperties = {
+      position: "absolute",
+      top: "50%",
+      willChange: "transform, top, left, right",
+      width: 0,
+      height: 0,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+    };
+
+    if (snapSide === "left") {
+      // 左吸附：靠左定位
+      const leftDist = CONFIG.WINDOW_PADDING + CONFIG.BALL_SIZE / 2;
+      return {
+        ...base,
+        left: `${leftDist}px`,
+        transform: "translate(-50%, -50%)",
+      };
+    }
+
+    if (snapSide === "right") {
+      // 右吸附：靠右定位
+      const rightDist = CONFIG.WINDOW_PADDING + CONFIG.BALL_SIZE / 2;
+      return {
+        ...base,
+        right: `${rightDist}px`,
+        transform: "translate(50%, -50%)",
+      };
+    }
+
+    // 默认居中
+    return {
+      ...base,
+      left: "50%",
+      transform: "translate(-50%, -50%)",
+    };
+  };
+
   return (
     <div
       style={{
-        width: "100%",
-        height: "100%",
+        width: "100vw",
+        height: "100vh",
         position: "relative",
-        pointerEvents: "none",
+        pointerEvents: isMenuOpen ? "auto" : "none",
         overflow: "visible",
       }}
+      onClick={() => isMenuOpen && onCloseMenu()}
     >
       {/* 始终居中的锚点容器 */}
-      <div
-        style={{
-          position: "absolute",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-          willChange: "transform, top, left",
-          width: 0,
-          height: 0,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
+      <div style={getContainerStyle()}>
         {menuItems.map((item, index) => (
           <button
             key={item.label}
@@ -172,7 +200,12 @@ export function FloatingBallUI({
           </button>
         ))}
 
-        <button type="button" onMouseDown={onMouseDown} style={getBallStyle()}>
+        <button
+          type="button"
+          onMouseDown={onMouseDown}
+          onClick={(e) => e.stopPropagation()}
+          style={getBallStyle()}
+        >
           <div
             style={{
               width: "12px",
