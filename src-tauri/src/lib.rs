@@ -20,6 +20,28 @@ fn update_tray_icon(app: tauri::AppHandle, bytes: Vec<u8>) -> Result<(), String>
     }
 }
 
+#[tauri::command]
+fn quit_app(app: tauri::AppHandle) {
+    app.exit(0);
+}
+
+#[tauri::command]
+fn resize_and_move(
+    window: tauri::Window,
+    x: i32,
+    y: i32,
+    width: u32,
+    height: u32,
+) -> Result<(), String> {
+    window
+        .set_size(tauri::PhysicalSize::new(width, height))
+        .map_err(|e| e.to_string())?;
+    window
+        .set_position(tauri::PhysicalPosition::new(x, y))
+        .map_err(|e| e.to_string())?;
+    Ok(())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -64,7 +86,12 @@ pub fn run() {
             }
             _ => {}
         })
-        .invoke_handler(tauri::generate_handler![greet, update_tray_icon])
+        .invoke_handler(tauri::generate_handler![
+            greet,
+            update_tray_icon,
+            quit_app,
+            resize_and_move
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
