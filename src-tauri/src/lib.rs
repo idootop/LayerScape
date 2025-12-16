@@ -42,6 +42,44 @@ fn resize_and_move(
     Ok(())
 }
 
+#[tauri::command]
+fn init_wallpaper_windows(app: tauri::AppHandle) -> Result<(), String> {
+    use tauri::Manager;
+    let monitors = app.available_monitors().map_err(|e| e.to_string())?;
+
+    for (i, monitor) in monitors.iter().enumerate() {
+        let label = format!("wallpaper-{}", i);
+
+        if app.get_webview_window(&label).is_some() {
+            continue;
+        }
+
+        let builder = tauri::WebviewWindowBuilder::new(
+            &app,
+            &label,
+            tauri::WebviewUrl::App("index.html#/wallpaper-window".into()),
+        )
+        .title("Wallpaper")
+        .decorations(false)
+        .transparent(true)
+        .skip_taskbar(true)
+        .always_on_bottom(true);
+
+        #[cfg(target_os = "macos")]
+        let builder = builder.hidden_title(true);
+
+        let window = builder.build().map_err(|e| e.to_string())?;
+
+        // 设置位置和大小以匹配显示器
+        let _ = window.set_position(monitor.position().clone());
+        let _ = window.set_size(monitor.size().clone());
+
+        // 确保它是可见的
+        let _ = window.show();
+    }
+    Ok(())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -90,7 +128,8 @@ pub fn run() {
             greet,
             update_tray_icon,
             quit_app,
-            resize_and_move
+            resize_and_move,
+            init_wallpaper_windows
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

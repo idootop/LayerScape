@@ -7,6 +7,7 @@ import Wallpaper from "./pages/Wallpaper";
 import StatusBarWidget from "./pages/StatusBarWidget";
 import ScreenCapture from "./pages/ScreenCapture";
 import FloatingBallWidget from "./pages/FloatingBallWidget";
+import WallpaperWindow from "./pages/WallpaperWindow";
 import "./App.css";
 
 function App() {
@@ -29,6 +30,7 @@ function App() {
           }
         />
         <Route path="/floating-widget" element={<FloatingBallWidget />} />
+        <Route path="/wallpaper-window" element={<WallpaperWindow />} />
       </Routes>
     </HashRouter>
   );
