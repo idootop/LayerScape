@@ -1,5 +1,5 @@
 import { useRef, useState, useCallback, useEffect } from "react";
-import { listen } from "@tauri-apps/api/event";
+import { onGlobalMouseEvent } from "../utils/mouse";
 import { invoke } from "@tauri-apps/api/core";
 import {
   getCurrentWindow,
@@ -471,10 +471,10 @@ export function useFloatingBallLogic() {
     let leaveTimer: number | null = null;
 
     const startListening = async () => {
-      unlisten = await listen<[number, number]>("mouse-pos", async (event) => {
+      unlisten = await onGlobalMouseEvent(async (payload) => {
         if (isDraggingRef.current) return;
 
-        const [mx, my] = event.payload;
+        const { x: mx, y: my } = payload;
         const { x, y, width, height } = windowRectRef.current;
         const scaleFactor = dragRef.current.scaleFactor;
         const visibleWidthPhys = CONFIG.VISIBLE_WIDTH * scaleFactor;

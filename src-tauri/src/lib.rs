@@ -1,4 +1,5 @@
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
+mod mouse_events;
 mod tray;
 
 #[tauri::command]
@@ -74,6 +75,39 @@ fn init_wallpaper_windows(app: tauri::AppHandle) -> Result<(), String> {
         let _ = window.set_position(monitor.position().clone());
         let _ = window.set_size(monitor.size().clone());
 
+        #[cfg(target_os = "macos")]
+        {
+            use objc2_app_kit::{
+                NSWindow, NSWindowCollectionBehavior, NSWindowLevel, NSWindowStyleMask,
+            };
+
+            let ns_window_ptr = window.ns_window().map_err(|e| e.to_string())?;
+            let ns_window = unsafe { &*(ns_window_ptr as *const NSWindow) };
+
+            // 1. 设置 StyleMask 为 Borderless，确保无边框
+            ns_window.setStyleMask(NSWindowStyleMask::Borderless);
+
+            // 2. 将窗口层级设置为桌面层级
+            let level: NSWindowLevel = -2147483628 + 10;
+            ns_window.setLevel(level);
+
+            // 3. 设置 CollectionBehavior
+            let behavior = ns_window.collectionBehavior();
+            ns_window.setCollectionBehavior(
+                behavior
+                    | NSWindowCollectionBehavior::CanJoinAllSpaces
+                    | NSWindowCollectionBehavior::Stationary
+                    | NSWindowCollectionBehavior::IgnoresCycle
+                    | NSWindowCollectionBehavior::FullScreenAuxiliary, // 允许覆盖 Dock
+            );
+
+            // 4. 强制设置窗口 Frame 为屏幕 Frame (覆盖 Dock 和菜单栏)
+            if let Some(screen) = ns_window.screen() {
+                let frame = screen.frame();
+                ns_window.setFrame_display(frame, true);
+            }
+        }
+
         // 确保它是可见的
         let _ = window.show();
     }
@@ -87,32 +121,12 @@ pub fn run() {
         .plugin(tauri_plugin_positioner::init())
         .plugin(tauri_plugin_dialog::init())
         .setup(|app| {
-            // 让应用在 macOS 上表现为纯菜单栏应用（隐藏 Dock 图标），解决点击任务栏其他图标不触发失焦的问题
-            // #[cfg(target_os = "macos")]
-            // app.set_activation_policy(tauri::ActivationPolicy::Accessory);
-
             #[cfg(desktop)]
             {
                 tray::create_tray(app.handle())?;
             }
 
-            let handle = app.handle().clone();
-            std::thread::spawn(move || {
-                use mouse_position::mouse_position::Mouse;
-                use std::time::Duration;
-                use tauri::Emitter;
-
-                loop {
-                    let position = Mouse::get_mouse_position();
-                    match position {
-                        Mouse::Position { x, y } => {
-                            let _ = handle.emit("mouse-pos", (x, y));
-                        }
-                        _ => {}
-                    }
-                    std::thread::sleep(Duration::from_millis(16));
-                }
-            });
+            mouse_events::init(app.handle());
 
             Ok(())
         })
