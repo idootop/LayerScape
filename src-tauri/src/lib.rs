@@ -134,7 +134,13 @@ pub fn run() {
         .on_window_event(|window, event| match event {
             tauri::WindowEvent::Focused(focused) => {
                 if !focused && window.label() == "tray" {
-                    let _ = window.hide();
+                    let window = window.clone();
+                    std::thread::spawn(move || {
+                        std::thread::sleep(std::time::Duration::from_millis(10));
+                        if !window.is_focused().unwrap_or(false) {
+                            let _ = window.hide();
+                        }
+                    });
                 }
             }
             _ => {}
