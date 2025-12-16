@@ -2,7 +2,9 @@
 
 探索电脑桌面壁纸层 + 悬浮层 + 状态栏的各种 GUI 交互能力。
 
-![Demo](./demo.webp)
+演示视频 👉 https://youtu.be/LJundyn2epQ
+
+[![Demo](./demo.webp)](https://youtu.be/LJundyn2epQ)
 
 ## 核心能力
 
