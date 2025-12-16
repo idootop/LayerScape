@@ -32,22 +32,7 @@ const StatusBarWidget: React.FC = () => {
       <h2>状态栏小工具</h2>
       <p>这里将实现状态栏小工具（支持动态图标 + 自定菜单页面）。</p>
 
-      <div
-        className="placeholder-content"
-        style={{
-          marginTop: "20px",
-          padding: "16px",
-          border: "1px dashed var(--border-color, #ccc)",
-          borderRadius: "8px",
-          display: "flex",
-          flexDirection: "column",
-          gap: "16px",
-          alignItems: "center",
-          justifyContent: "center",
-          height: "100%",
-          width: "100%",
-        }}
-      >
+      <div className="placeholder-content">
         <h3 style={{ marginTop: 0 }}>动态更新任务栏图标</h3>
         <div
           style={{

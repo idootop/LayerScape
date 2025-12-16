@@ -86,6 +86,7 @@ fn init_wallpaper_windows(app: tauri::AppHandle) -> Result<(), String> {
 
             // 1. 设置 StyleMask 为 Borderless，确保无边框
             ns_window.setStyleMask(NSWindowStyleMask::Borderless);
+            ns_window.setHasShadow(false);
 
             // 2. 将窗口层级设置为桌面层级
             let level: NSWindowLevel = -2147483628 + 10;

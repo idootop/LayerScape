@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
-import { Home, CircleDot, Monitor, PanelTop, Crop } from 'lucide-react';
+import { Home, CircleDot, Monitor, PanelTop } from 'lucide-react';
 import '../App.css'; // Ensure styles are available
 
 const Layout: React.FC = () => {
@@ -22,9 +22,6 @@ const Layout: React.FC = () => {
           </NavLink>
           <NavLink to="/status-bar" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} title="状态栏小工具">
             <PanelTop size={24} />
-          </NavLink>
-          <NavLink to="/screen-capture" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} title="截屏">
-            <Crop size={24} />
           </NavLink>
         </nav>
       </aside>

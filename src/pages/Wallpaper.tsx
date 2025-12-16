@@ -17,6 +17,7 @@ const Wallpaper: React.FC = () => {
       <p>这里将实现动态壁纸功能（支持任意网页 + 鼠标交互）。</p>
       <div className="placeholder-content">
         <button
+          type="button"
           onClick={handleEnableWallpaper}
           style={{ padding: "10px 20px", fontSize: "16px", cursor: "pointer" }}
         >

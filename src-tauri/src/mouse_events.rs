@@ -1,6 +1,7 @@
-use rdev::{listen, Button, EventType};
+use mouse_position::mouse_position::Mouse;
 use serde::Serialize;
 use std::thread;
+use std::time::Duration;
 use tauri::{AppHandle, Emitter};
 
 #[derive(Clone, Serialize)]
@@ -14,72 +15,31 @@ pub struct GlobalMouseEvent {
 pub fn init(app: &AppHandle) {
     let handle = app.clone();
     thread::spawn(move || {
-        let mut x = 0.0;
-        let mut y = 0.0;
-        let mut is_left_down = false;
-        let mut is_right_down = false;
+        let mut last_x = 0;
+        let mut last_y = 0;
 
-        if let Err(error) = listen(move |event| {
-            let mut event_type_str = "";
-            let mut button_str = "none";
+        loop {
+            let position = Mouse::get_mouse_position();
+            match position {
+                Mouse::Position { x, y } => {
+                    if x != last_x || y != last_y {
+                        last_x = x;
+                        last_y = y;
 
-            match event.event_type {
-                EventType::MouseMove { x: new_x, y: new_y } => {
-                    x = new_x;
-                    y = new_y;
-                    event_type_str = if is_left_down || is_right_down {
-                        "drag"
-                    } else {
-                        "move"
-                    };
-                    button_str = if is_left_down {
-                        "left"
-                    } else if is_right_down {
-                        "right"
-                    } else {
-                        "none"
-                    };
-                }
-                EventType::ButtonPress(btn) => {
-                    event_type_str = "down";
-                    match btn {
-                        Button::Left => {
-                            is_left_down = true;
-                            button_str = "left";
-                        }
-                        Button::Right => {
-                            is_right_down = true;
-                            button_str = "right";
-                        }
-                        _ => return, // 忽略其他按键
+                        let payload = GlobalMouseEvent {
+                            x: x as f64,
+                            y: y as f64,
+                            event: "move".to_string(),
+                            button: "none".to_string(),
+                        };
+                        let _ = handle.emit("global-mouse-event", payload);
                     }
                 }
-                EventType::ButtonRelease(btn) => {
-                    event_type_str = "up";
-                    match btn {
-                        Button::Left => {
-                            is_left_down = false;
-                            button_str = "left";
-                        }
-                        Button::Right => {
-                            is_right_down = false;
-                            button_str = "right";
-                        }
-                        _ => return,
-                    }
+                Mouse::Error => {
+                    // ignore error
                 }
-                _ => return, // 忽略键盘和其他事件
             }
-
-            let payload = GlobalMouseEvent {
-                x,
-                y,
-                event: event_type_str.to_string(),
-                button: button_str.to_string(),
-            };
-            let _ = handle.emit("global-mouse-event", payload);
-        }) {
-            eprintln!("Error: {:?}", error);
+            thread::sleep(Duration::from_millis(16));
         }
     });
 }
