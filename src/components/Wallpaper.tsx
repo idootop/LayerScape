@@ -1,14 +1,9 @@
 import type React from 'react';
 import { useCallback, useEffect, useRef } from 'react';
 
-import { useWallpaperInteractions } from '../core/window';
-
-const WallpaperWindow: React.FC = () => {
+export const Wallpaper: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const mousePosRef = useRef({ x: 0, y: 0 });
-
-  // 监听全局鼠标位置
-  useWallpaperInteractions();
 
   // 鼠标移动处理函数
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
@@ -119,9 +114,8 @@ const WallpaperWindow: React.FC = () => {
     <div
       onMouseMove={handleMouseMove}
       style={{
-        width: '100vw',
-        height: '100vh',
-        overflow: 'hidden',
+        width: '100%',
+        height: '100%',
         background: 'rgba(0, 0, 0, 0.3)',
       }}
     >
@@ -134,5 +128,3 @@ const WallpaperWindow: React.FC = () => {
     </div>
   );
 };
-
-export default WallpaperWindow;

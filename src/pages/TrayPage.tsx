@@ -3,7 +3,7 @@ import { useState } from 'react';
 
 import { Tray } from '@/core/tray';
 
-const TrayPage: React.FC = () => {
+export const TrayPage: React.FC = () => {
   const [imageUrl, setImageUrl] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -65,5 +65,3 @@ const TrayPage: React.FC = () => {
     </div>
   );
 };
-
-export default TrayPage;
