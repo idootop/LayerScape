@@ -1,15 +1,4 @@
 mod mouse_events;
-use std::sync::atomic::{AtomicBool, Ordering};
-use tauri::State;
-
-struct AppState {
-    is_initialized: AtomicBool,
-}
-
-#[tauri::command]
-fn check_and_set_initialized(state: State<'_, AppState>) -> bool {
-    state.is_initialized.swap(true, Ordering::SeqCst)
-}
 
 #[tauri::command]
 fn resize_and_move(
@@ -29,14 +18,52 @@ fn resize_and_move(
 }
 
 #[tauri::command]
+fn set_window_level(window: tauri::WebviewWindow, level: String) -> Result<(), String> {
+    let is_below = level == "below";
+
+    #[cfg(target_os = "macos")]
+    {
+        if is_below {
+            use objc2_app_kit::NSWindow;
+            let ns_window_ptr = window.ns_window().map_err(|e| e.to_string())?;
+            let ns_window = unsafe { &*(ns_window_ptr as *const NSWindow) };
+            ns_window.setLevel(-2147483628 + 10); // kCGDesktopWindowLevel + 1
+        } else {
+            window
+                .set_always_on_bottom(true)
+                .map_err(|e| e.to_string())?;
+        };
+    }
+
+    Ok(())
+}
+
+#[tauri::command]
 fn init_wallpaper_windows(app: tauri::AppHandle) -> Result<(), String> {
     use tauri::Manager;
     let monitors = app.available_monitors().map_err(|e| e.to_string())?;
 
+    // 1. 销毁不再存在的显示器对应的窗口
+    let current_labels: Vec<String> = monitors
+        .iter()
+        .enumerate()
+        .map(|(i, _)| format!("wallpaper-{}", i))
+        .collect();
+    let existing_windows = app.webview_windows();
+    for (label, window) in existing_windows {
+        if label.starts_with("wallpaper-") && !current_labels.contains(&label) {
+            let _ = window.close();
+        }
+    }
+
+    // 2. 为新显示器创建窗口
     for (i, monitor) in monitors.iter().enumerate() {
         let label = format!("wallpaper-{}", i);
 
-        if app.get_webview_window(&label).is_some() {
+        if let Some(window) = app.get_webview_window(&label) {
+            // 如果窗口已存在，确保它的位置和大小正确
+            let _ = window.set_position(monitor.position().clone());
+            let _ = window.set_size(monitor.size().clone());
             continue;
         }
 
@@ -107,17 +134,38 @@ pub fn run() {
         .plugin(tauri_plugin_positioner::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_process::init())
-        .manage(AppState {
-            is_initialized: AtomicBool::new(false),
-        })
         .setup(|app| {
             mouse_events::init(app.handle()); // 初始化全局鼠标事件
+
+            let handle = app.handle().clone();
+            std::thread::spawn(move || {
+                let mut last_monitor_count = 0;
+                loop {
+                    if let Ok(monitors) = handle.available_monitors() {
+                        if monitors.len() != last_monitor_count {
+                            last_monitor_count = monitors.len();
+                            // 只有在已经初始化过壁纸窗口的情况下才自动同步
+                            // 我们通过检查是否有任何以 wallpaper- 开头的窗口来判断
+                            use tauri::Manager;
+                            let has_wallpaper = handle
+                                .webview_windows()
+                                .values()
+                                .any(|w| w.label().starts_with("wallpaper-"));
+                            if has_wallpaper {
+                                let _ = init_wallpaper_windows(handle.clone());
+                            }
+                        }
+                    }
+                    std::thread::sleep(std::time::Duration::from_secs(2));
+                }
+            });
+
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
             resize_and_move,
             init_wallpaper_windows,
-            check_and_set_initialized
+            set_window_level,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -1,10 +1,29 @@
+import { invoke } from '@tauri-apps/api/core';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { useEffect, useRef } from 'react';
 
 import { type GlobalMouseEvent, onGlobalMouseEvent } from '@/core/mouse';
 
+import { listen2window } from '../event';
+
 export const useWallpaperInteractions = () => {
+  const enabledRef = useRef(true);
   const windowRectRef = useRef({ x: 0, y: 0, width: 0, height: 0 });
+
+  // 监听切换层级指令
+  useEffect(() => {
+    const win = getCurrentWebviewWindow();
+    const unlisten = listen2window<'below' | 'above'>(
+      'set_window_level',
+      (level) => {
+        enabledRef.current = level === 'below';
+        invoke('set_window_level', { window: win, level });
+      },
+    );
+    return () => {
+      unlisten.then((u) => u());
+    };
+  }, []);
 
   // 初始化窗口大小位置
   useEffect(() => {
@@ -35,6 +54,8 @@ export const useWallpaperInteractions = () => {
 
   // 鼠标事件回调
   function onMouseEvent(payload: GlobalMouseEvent) {
+    if (!enabledRef.current) return;
+
     const { x, y, width, height } = windowRectRef.current;
 
     // 转换成物理坐标

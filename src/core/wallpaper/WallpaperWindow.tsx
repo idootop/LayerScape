@@ -7,7 +7,7 @@ export const WallpaperWindow = ({
 }: {
   children: React.ReactNode;
 }) => {
-  // 监听全局鼠标位置
+  // 监听鼠标事件
   useWallpaperInteractions();
 
   return (

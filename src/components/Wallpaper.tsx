@@ -1,5 +1,68 @@
+import { currentMonitor } from '@tauri-apps/api/window';
 import type React from 'react';
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+
+import { emit2window } from '@/core/event';
+
+function MonitorControl() {
+  const [level, setLevel] = useState<'below' | 'above'>('below');
+  const [monitorName, setMonitorName] = useState<string>('Unknown');
+
+  useEffect(() => {
+    (async () => {
+      const monitor = await currentMonitor();
+      setMonitorName(monitor?.name ?? 'Unknown');
+    })();
+  }, []);
+
+  const handleClick = async () => {
+    const newLevel = level === 'below' ? 'above' : 'below';
+    emit2window('set_window_level', newLevel);
+    setLevel(newLevel);
+  };
+
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%,-50%)',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '10px',
+      }}
+    >
+      <div
+        style={{
+          padding: '8px 16px',
+          background: 'rgba(0, 0, 0, 0.5)',
+          color: 'white',
+          borderRadius: '4px',
+          fontSize: '14px',
+          pointerEvents: 'none',
+          zIndex: 9999,
+        }}
+      >
+        👉 {monitorName || 'Primary'}
+      </div>
+      <button
+        onClick={handleClick}
+        style={{
+          padding: '8px 12px',
+          background: level === 'below' ? '#007AFF' : '#FF3B30',
+          color: 'white',
+          border: 'none',
+          borderRadius: '4px',
+          cursor: 'pointer',
+        }}
+        type="button"
+      >
+        {level === 'below' ? '层级: 桌面图标下' : '层级: 桌面图标上'}
+      </button>
+    </div>
+  );
+}
 
 export const Wallpaper: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -125,6 +188,7 @@ export const Wallpaper: React.FC = () => {
           display: 'block', // 移除 Canvas 默认的内边距
         }}
       />
+      <MonitorControl />
     </div>
   );
 };
