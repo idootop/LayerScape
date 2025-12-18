@@ -3,6 +3,7 @@ import { emit } from '@tauri-apps/api/event';
 import { Image } from '@tauri-apps/api/image';
 import { Menu, MenuItem, type MenuItemOptions } from '@tauri-apps/api/menu';
 import { TrayIcon } from '@tauri-apps/api/tray';
+import { WebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { exit } from '@tauri-apps/plugin-process';
 
 import { getWebviewWindow } from '@/core/window';
@@ -47,14 +48,32 @@ class _Tray {
       action: async (event) => {
         // 点击托盘图标显示窗口
         if (event.type === 'Click' && event.button === 'Left') {
-          const trayWin = await getWebviewWindow('tray');
+          let trayWin = await getWebviewWindow('tray');
+
           if (!trayWin) {
-            return;
+            // 动态创建窗口
+            trayWin = new WebviewWindow('tray', {
+              url: 'index.html#/tray',
+              width: 320,
+              height: 540,
+              decorations: false,
+              transparent: true,
+              visible: false,
+              skipTaskbar: true,
+              alwaysOnTop: true,
+              focusable: false,
+            });
+            // 等待窗口准备好
+            await new Promise((resolve) => {
+              trayWin?.once('tauri://created', resolve);
+            });
           }
+
           const isVisible = await trayWin.isVisible();
           if (isVisible) {
             return;
           }
+
           const isMac = navigator.userAgent.includes('Mac');
           if (isMac) {
             // 调整位置
@@ -67,7 +86,8 @@ class _Tray {
             const winWidth = outerSize.width;
 
             const trayCenterX = trayX + trayWidth / 2 - winWidth / 2;
-            const trayCenterY = trayY + trayHeight;
+            const trayCenterY =
+              trayY + trayHeight + 4 * window.devicePixelRatio;
 
             await trayWin.setPosition(
               new PhysicalPosition(trayCenterX, trayCenterY),

@@ -23,12 +23,12 @@ export const TrayWindow = ({ children }: TrayWindowProps) => {
   useWindowFocus({
     onBlur: async () => {
       setTimeout(async () => {
-        // 延迟隐藏，防止窗口关闭又被快速打开造成闪烁
+        // 延迟关闭，防止窗口关闭又被快速打开造成闪烁
         const trayShowTimeAfter = trayShowTimeRef.current;
         if (Date.now() - trayShowTimeAfter < 300) {
           return;
         }
-        await getCurrentWindow().hide();
+        await getCurrentWindow().close();
       }, 150);
     },
   });
@@ -44,7 +44,6 @@ export const TrayWindow = ({ children }: TrayWindowProps) => {
         overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
-        marginTop: '4px',
       }}
     >
       <div
@@ -52,7 +51,6 @@ export const TrayWindow = ({ children }: TrayWindowProps) => {
           flex: 1,
           overflow: 'auto',
           padding: 16,
-          paddingBottom: 20,
         }}
       >
         {children}

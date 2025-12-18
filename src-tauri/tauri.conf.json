@@ -19,17 +19,6 @@
         "height": 600
       },
       {
-        "label": "tray",
-        "url": "index.html#/tray",
-        "width": 320,
-        "height": 560,
-        "decorations": false,
-        "transparent": true,
-        "visible": false,
-        "skipTaskbar": true,
-        "alwaysOnTop": true
-      },
-      {
         "label": "floating-ball",
         "url": "index.html#/floating-widget",
         "width": 60,
