@@ -1,6 +1,14 @@
-import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
+import {
+  getAllWebviewWindows,
+  getCurrentWebviewWindow,
+} from "@tauri-apps/api/webviewWindow";
 import { useEffect, useRef } from "react";
 import { GlobalMouseEvent, onGlobalMouseEvent } from "./mouse";
+
+export const getWebviewWindow = async (label: string) => {
+  const windows = await getAllWebviewWindows();
+  return windows.find((w) => w.label === label);
+};
 
 export const useWallpaperInteractions = () => {
   const windowRectRef = useRef({ x: 0, y: 0, width: 0, height: 0 });

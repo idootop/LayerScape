@@ -1,30 +1,4 @@
-// Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 mod mouse_events;
-mod tray;
-
-#[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
-}
-
-#[tauri::command]
-fn update_tray_icon(app: tauri::AppHandle, bytes: Vec<u8>) -> Result<(), String> {
-    use tauri::image::Image;
-
-    let image = Image::from_bytes(&bytes).map_err(|e| e.to_string())?;
-
-    if let Some(tray) = app.tray_by_id("main") {
-        tray.set_icon(Some(image)).map_err(|e| e.to_string())?;
-        Ok(())
-    } else {
-        Err("Tray icon not found".to_string())
-    }
-}
-
-#[tauri::command]
-fn quit_app(app: tauri::AppHandle) {
-    app.exit(0);
-}
 
 #[tauri::command]
 fn resize_and_move(
@@ -121,34 +95,12 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_positioner::init())
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_process::init())
         .setup(|app| {
-            #[cfg(desktop)]
-            {
-                tray::create_tray(app.handle())?;
-            }
-
-            mouse_events::init(app.handle());
-
+            mouse_events::init(app.handle()); // 初始化全局鼠标事件
             Ok(())
         })
-        .on_window_event(|window, event| match event {
-            tauri::WindowEvent::Focused(focused) => {
-                if !focused && window.label() == "tray" {
-                    let window = window.clone();
-                    std::thread::spawn(move || {
-                        std::thread::sleep(std::time::Duration::from_millis(10));
-                        if !window.is_focused().unwrap_or(false) {
-                            let _ = window.hide();
-                        }
-                    });
-                }
-            }
-            _ => {}
-        })
         .invoke_handler(tauri::generate_handler![
-            greet,
-            update_tray_icon,
-            quit_app,
             resize_and_move,
             init_wallpaper_windows
         ])

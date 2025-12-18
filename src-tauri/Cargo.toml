@@ -1,9 +1,9 @@
 [package]
 name = "LayerScape"
 version = "0.1.0"
-description = "A Tauri App"
-authors = ["you"]
-edition = "2021"
+description = "A desktop application for exploring desktop wallpaper layers, floating widgets, and status bar interactions."
+authors = ["Del Wang"]
+edition = "2024"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -27,6 +27,7 @@ tauri = { version = "2", features = [
 tauri-plugin-opener = "2"
 tauri-plugin-positioner = { version = "2", features = ["tray-icon"] }
 tauri-plugin-dialog = "2"
+tauri-plugin-process = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 mouse_position = "0.1.4"
@@ -38,3 +39,4 @@ objc2-app-kit = { version = "0.3.2", features = [
     "NSScreen",
     "NSGraphics",  # for NSWindowStyleMask
 ] }
+rdev = { git = "https://github.com/Narsil/rdev", rev = "c14f2dc5c8100a96c5d7e3013de59d6aa0b9eae2" }

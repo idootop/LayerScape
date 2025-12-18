@@ -8,8 +8,11 @@ import StatusBarWidget from "./pages/StatusBarWidget";
 import FloatingBallWidget from "./pages/FloatingBallWidget";
 import WallpaperWindow from "./pages/WallpaperWindow";
 import "./App.css";
+import { initAPP } from "./utils/init";
 
 function App() {
+  initAPP();
+
   return (
     <HashRouter>
       <Routes>

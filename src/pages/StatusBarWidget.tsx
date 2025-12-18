@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { invoke } from "@tauri-apps/api/core";
+import { Tray } from "../utils/tray";
 
 const StatusBarWidget: React.FC = () => {
   const [imageUrl, setImageUrl] = useState("");
@@ -8,23 +8,8 @@ const StatusBarWidget: React.FC = () => {
   const handleUpdateIcon = async () => {
     if (!imageUrl) return;
     setLoading(true);
-    try {
-      const response = await fetch(imageUrl);
-      if (!response.ok) {
-        throw new Error(`Fetch failed: ${response.statusText}`);
-      }
-      const blob = await response.blob();
-      const buffer = await blob.arrayBuffer();
-      const bytes = new Uint8Array(buffer);
-
-      // Convert Uint8Array to regular array for serialization
-      await invoke("update_tray_icon", { bytes: Array.from(bytes) });
-    } catch (error) {
-      console.error(error);
-      alert("图标更新失败: " + error);
-    } finally {
-      setLoading(false);
-    }
+    await Tray.updateIcon(imageUrl);
+    setLoading(false);
   };
 
   return (
