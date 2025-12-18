@@ -1,4 +1,15 @@
 mod mouse_events;
+use std::sync::atomic::{AtomicBool, Ordering};
+use tauri::State;
+
+struct AppState {
+    is_initialized: AtomicBool,
+}
+
+#[tauri::command]
+fn check_and_set_initialized(state: State<'_, AppState>) -> bool {
+    state.is_initialized.swap(true, Ordering::SeqCst)
+}
 
 #[tauri::command]
 fn resize_and_move(
@@ -96,13 +107,17 @@ pub fn run() {
         .plugin(tauri_plugin_positioner::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_process::init())
+        .manage(AppState {
+            is_initialized: AtomicBool::new(false),
+        })
         .setup(|app| {
             mouse_events::init(app.handle()); // 初始化全局鼠标事件
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
             resize_and_move,
-            init_wallpaper_windows
+            init_wallpaper_windows,
+            check_and_set_initialized
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

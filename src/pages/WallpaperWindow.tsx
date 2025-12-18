@@ -1,8 +1,7 @@
-import React, { useEffect, useRef, useState, useCallback } from "react";
-import { onGlobalMouseEvent } from "../utils/mouse";
-import { getCurrentWindow } from "@tauri-apps/api/window";
-import { PoolDuck } from "../components/duck/PoolDuck";
-import { useWallpaperInteractions } from "../utils/window";
+import type React from 'react';
+import { useCallback, useEffect, useRef } from 'react';
+
+import { useWallpaperInteractions } from '../core/window';
 
 const WallpaperWindow: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -30,7 +29,7 @@ const WallpaperWindow: React.FC = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
     // 初始化 Canvas 大小
@@ -118,18 +117,18 @@ const WallpaperWindow: React.FC = () => {
 
   return (
     <div
-      style={{
-        width: "100vw",
-        height: "100vh",
-        overflow: "hidden",
-        background: "rgba(0, 0, 0, 0.3)",
-      }}
       onMouseMove={handleMouseMove}
+      style={{
+        width: '100vw',
+        height: '100vh',
+        overflow: 'hidden',
+        background: 'rgba(0, 0, 0, 0.3)',
+      }}
     >
       <canvas
         ref={canvasRef}
         style={{
-          display: "block", // 移除 Canvas 默认的内边距
+          display: 'block', // 移除 Canvas 默认的内边距
         }}
       />
     </div>

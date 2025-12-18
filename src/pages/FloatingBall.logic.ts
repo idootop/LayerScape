@@ -1,12 +1,13 @@
-import { useRef, useState, useCallback, useEffect } from "react";
-import { onGlobalMouseEvent } from "../utils/mouse";
-import { invoke } from "@tauri-apps/api/core";
+import { invoke } from '@tauri-apps/api/core';
 import {
-  getCurrentWindow,
   availableMonitors,
+  getCurrentWindow,
   PhysicalPosition,
   PhysicalSize,
-} from "@tauri-apps/api/window";
+} from '@tauri-apps/api/window';
+import { useCallback, useEffect, useRef, useState } from 'react';
+
+import { onGlobalMouseEvent } from '../core/mouse';
 
 // 常量配置
 export const CONFIG = {
@@ -20,7 +21,7 @@ export const CONFIG = {
   MENU_ITEM_SIZE: 40, // 菜单项大小
 };
 
-export type SnapSide = "left" | "right" | null;
+export type SnapSide = 'left' | 'right' | null;
 
 export function useFloatingBallLogic() {
   // 状态
@@ -76,7 +77,7 @@ export function useFloatingBallLogic() {
         height: size.height,
       };
     } catch (e) {
-      console.error("Failed to update window rect cache", e);
+      console.error('Failed to update window rect cache', e);
     }
   }, []);
 
@@ -87,7 +88,7 @@ export function useFloatingBallLogic() {
     try {
       await windowRef.current.setPosition(new PhysicalPosition(x, y));
     } catch (e) {
-      console.error("Move window failed", e);
+      console.error('Move window failed', e);
     } finally {
       isMovingWindow.current = false;
     }
@@ -129,14 +130,14 @@ export function useFloatingBallLogic() {
 
       if (distLeft < threshold || distRight < threshold) {
         if (distLeft <= distRight) {
-          setSnapSide("left");
+          setSnapSide('left');
           snapTargetRef.current = {
             monitorX: mx,
             monitorWidth: mw,
             monitorScale,
           };
         } else {
-          setSnapSide("right");
+          setSnapSide('right');
           snapTargetRef.current = {
             monitorX: mx,
             monitorWidth: mw,
@@ -148,7 +149,7 @@ export function useFloatingBallLogic() {
         snapTargetRef.current = null;
       }
     } catch (e) {
-      console.error("Snap check failed", e);
+      console.error('Snap check failed', e);
     }
   }, []);
 
@@ -209,10 +210,10 @@ export function useFloatingBallLogic() {
 
         // 根据吸附状态调整展开方向，保持悬浮球在屏幕上的位置视觉不变
         const currentSnapSide = snapSideRef.current;
-        if (currentSnapSide === "left") {
+        if (currentSnapSide === 'left') {
           // 吸附左侧：窗口左边缘保持不变
           targetX = pos.x;
-        } else if (currentSnapSide === "right") {
+        } else if (currentSnapSide === 'right') {
           // 吸附右侧：窗口右边缘保持不变
           targetX = pos.x + size.width - expandedSize;
         }
@@ -238,7 +239,7 @@ export function useFloatingBallLogic() {
         }
 
         // 调用 Rust 命令一次性调整大小和位置
-        await invoke("resize_and_move", {
+        await invoke('resize_and_move', {
           x: Math.round(targetX),
           y: Math.round(targetY),
           width: expandedSize,
@@ -301,9 +302,9 @@ export function useFloatingBallLogic() {
                 };
 
                 if (distLeft <= distRight) {
-                  effectiveSnapSide = "left";
+                  effectiveSnapSide = 'left';
                 } else {
-                  effectiveSnapSide = "right";
+                  effectiveSnapSide = 'right';
                 }
                 effectiveSnapTarget = monitorInfo;
 
@@ -318,15 +319,15 @@ export function useFloatingBallLogic() {
           let targetX = cx - smallSize / 2;
           const targetY = cy - smallSize / 2;
 
-          if (effectiveSnapSide === "left" && effectiveSnapTarget) {
+          if (effectiveSnapSide === 'left' && effectiveSnapTarget) {
             targetX = effectiveSnapTarget.monitorX;
-          } else if (effectiveSnapSide === "right" && effectiveSnapTarget) {
+          } else if (effectiveSnapSide === 'right' && effectiveSnapTarget) {
             const { monitorX, monitorWidth } = effectiveSnapTarget;
             targetX = monitorX + monitorWidth - smallSize;
           }
 
           // 调用 Rust 命令一次性调整大小和位置
-          await invoke("resize_and_move", {
+          await invoke('resize_and_move', {
             x: Math.round(targetX),
             y: Math.round(targetY),
             width: smallSize,
@@ -343,7 +344,7 @@ export function useFloatingBallLogic() {
         }, 300);
       }
     },
-    [isMenuOpen, updateWindowRectCache]
+    [isMenuOpen, updateWindowRectCache],
   );
 
   // 处理窗口失焦
@@ -389,7 +390,7 @@ export function useFloatingBallLogic() {
         await win.setPosition(new PhysicalPosition(initialX, initialY));
         await updateWindowRectCache();
 
-        setSnapSide("right");
+        setSnapSide('right');
         snapTargetRef.current = {
           monitorX: mx,
           monitorWidth: mw,
@@ -419,7 +420,7 @@ export function useFloatingBallLogic() {
       // 检测是否为有效拖拽并清除吸附状态
       if (snapSideRef.current) {
         const dist = Math.sqrt(
-          Math.pow(e.screenX - startX, 2) + Math.pow(e.screenY - startY, 2)
+          (e.screenX - startX) ** 2 + (e.screenY - startY) ** 2,
         );
         if (dist > 5) {
           setSnapSide(null);
@@ -431,14 +432,14 @@ export function useFloatingBallLogic() {
       const deltaY = (e.screenY - startY) * scaleFactor;
       moveWindow(
         Math.round(startWinX + deltaX),
-        Math.round(startWinY + deltaY)
+        Math.round(startWinY + deltaY),
       );
     };
 
     const handleMouseUp = async (e: MouseEvent) => {
       const { startX, startY } = dragRef.current;
       const dist = Math.sqrt(
-        Math.pow(e.screenX - startX, 2) + Math.pow(e.screenY - startY, 2)
+        (e.screenX - startX) ** 2 + (e.screenY - startY) ** 2,
       );
 
       setIsDragging(false);
@@ -455,12 +456,12 @@ export function useFloatingBallLogic() {
       }
     };
 
-    document.addEventListener("mousemove", handleMouseMove);
-    document.addEventListener("mouseup", handleMouseUp);
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
 
     return () => {
-      document.removeEventListener("mousemove", handleMouseMove);
-      document.removeEventListener("mouseup", handleMouseUp);
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
     };
   }, [isDragging, moveWindow, updateWindowRectCache, toggleMenu]);
 
@@ -479,7 +480,7 @@ export function useFloatingBallLogic() {
         const scaleFactor = dragRef.current.scaleFactor;
         const visibleWidthPhys = CONFIG.VISIBLE_WIDTH * scaleFactor;
 
-        const isMac = navigator.userAgent.includes("Mac");
+        const isMac = navigator.userAgent.includes('Mac');
         const mouseX = isMac ? mx * scaleFactor : mx;
         const mouseY = isMac ? my * scaleFactor : my;
 
@@ -496,13 +497,13 @@ export function useFloatingBallLogic() {
             mouseY >= y &&
             mouseY <= y + height;
         } else {
-          if (currentSnapSide === "left") {
+          if (currentSnapSide === 'left') {
             isHit =
               mouseX >= x &&
               mouseX <= x + visibleWidthPhys &&
               mouseY >= y &&
               mouseY <= y + height;
-          } else if (currentSnapSide === "right") {
+          } else if (currentSnapSide === 'right') {
             isHit =
               mouseX >= x + width - visibleWidthPhys &&
               mouseX <= x + width &&
@@ -585,9 +586,9 @@ export function useFloatingBallLogic() {
 
       let targetX = pos.x;
 
-      if (snapSide === "left") {
+      if (snapSide === 'left') {
         targetX = mx;
-      } else if (snapSide === "right") {
+      } else if (snapSide === 'right') {
         targetX = mx + mw - ballSizePhys - paddingPhys * 2;
       }
 

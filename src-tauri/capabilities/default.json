@@ -23,6 +23,7 @@
     "core:tray:default",
     "core:menu:default",
     "core:image:default",
-    "process:allow-exit"
+    "process:allow-exit",
+    "dialog:allow-message"
   ]
 }

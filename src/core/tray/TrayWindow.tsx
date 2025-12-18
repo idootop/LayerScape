@@ -1,17 +1,18 @@
-import { getCurrentWindow } from "@tauri-apps/api/window";
-import { listen } from "@tauri-apps/api/event";
-import { useWindowFocus } from "../utils/focus";
-import { useRef, useEffect } from "react";
+import { listen } from '@tauri-apps/api/event';
+import { getCurrentWindow } from '@tauri-apps/api/window';
+import { useEffect, useRef } from 'react';
 
-interface TrayWrapperProps {
+import { useWindowFocus } from '@/core/focus';
+
+interface TrayWindowProps {
   children: React.ReactNode;
 }
 
-export const TrayWrapper = ({ children }: TrayWrapperProps) => {
+export const TrayWindow = ({ children }: TrayWindowProps) => {
   const trayShowTimeRef = useRef(0);
 
   useEffect(() => {
-    const unlisten = listen<number>("tray-show", () => {
+    const unlisten = listen<number>('tray-show', () => {
       trayShowTimeRef.current = Date.now();
     });
     return () => {
@@ -35,23 +36,22 @@ export const TrayWrapper = ({ children }: TrayWrapperProps) => {
   return (
     <div
       style={{
-        background: "var(--bg-color, white)",
-        height: "100%",
-        borderRadius: "12px",
-        border: "1px solid var(--hover-color)",
-        boxSizing: "border-box",
-        overflow: "hidden", // Ensure container clips children
-        display: "flex",
-        flexDirection: "column",
-        marginTop: "4px",
+        background: 'var(--bg-color, white)',
+        height: '100%',
+        borderRadius: '12px',
+        border: '1px solid var(--hover-color)',
+        boxSizing: 'border-box',
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
+        marginTop: '4px',
       }}
     >
       <div
         style={{
           flex: 1,
-          overflow: "auto",
+          overflow: 'auto',
           padding: 16,
-          // Add padding to bottom to avoid content being cut off by corner radius
           paddingBottom: 20,
         }}
       >

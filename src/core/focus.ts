@@ -1,17 +1,18 @@
-import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
-import { useEffect } from "react";
-import { GlobalMouseEvent, onGlobalMouseEvent } from "./mouse";
+import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
+import { useEffect } from 'react';
+
+import { type GlobalMouseEvent, onGlobalMouseEvent } from '@/core/mouse';
 
 export const useWindowFocus = (
   props?: Partial<{
     onFocus: () => void;
     onBlur: () => void;
-  }>
+  }>,
 ) => {
   // 监听全局鼠标事件
   useEffect(() => {
     const unlisten = onGlobalMouseEvent((e) => {
-      if (["up", "down"].includes(e.event)) {
+      if (['up', 'down'].includes(e.event)) {
         onMouseClick(e);
       }
     });
@@ -32,7 +33,7 @@ export const useWindowFocus = (
       width = size.width;
       height = size.height;
     } catch (e) {
-      console.error("Failed to get current window rect", e);
+      console.error('Failed to get current window rect', e);
       return;
     }
 

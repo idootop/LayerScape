@@ -1,37 +1,43 @@
-import { HashRouter, Routes, Route } from "react-router-dom";
-import Layout from "./components/Layout";
-import { TrayWrapper } from "./components/TrayWrapper";
-import Home from "./pages/Home";
-import FloatingBall from "./pages/FloatingBall";
-import Wallpaper from "./pages/Wallpaper";
-import StatusBarWidget from "./pages/StatusBarWidget";
-import FloatingBallWidget from "./pages/FloatingBallWidget";
-import WallpaperWindow from "./pages/WallpaperWindow";
-import "./App.css";
-import { initAPP } from "./utils/init";
+import { useEffect } from 'react';
+import { HashRouter, Route, Routes } from 'react-router-dom';
+
+import './App.css';
+
+import { TrayWindow } from '@/core/tray/TrayWindow';
+
+import Layout from './components/Layout';
+import { initAPP } from './core/init';
+import FloatingBall from './pages/FloatingBall';
+import FloatingBallWidget from './pages/FloatingBallWidget';
+import Home from './pages/Home';
+import TrayPage from './pages/Tray';
+import Wallpaper from './pages/Wallpaper';
+import WallpaperWindow from './pages/WallpaperWindow';
 
 function App() {
-  initAPP();
+  useEffect(() => {
+    initAPP();
+  }, []);
 
   return (
     <HashRouter>
       <Routes>
-        <Route path="/" element={<Layout />}>
-          <Route index element={<Home />} />
-          <Route path="floating-ball" element={<FloatingBall />} />
-          <Route path="wallpaper" element={<Wallpaper />} />
-          <Route path="status-bar" element={<StatusBarWidget />} />
+        <Route element={<Layout />} path="/">
+          <Route element={<Home />} index />
+          <Route element={<FloatingBall />} path="floating-ball" />
+          <Route element={<Wallpaper />} path="wallpaper" />
+          <Route element={<TrayPage />} path="status-bar" />
         </Route>
         <Route
-          path="/tray"
           element={
-            <TrayWrapper>
+            <TrayWindow>
               <Home />
-            </TrayWrapper>
+            </TrayWindow>
           }
+          path="/tray"
         />
-        <Route path="/floating-widget" element={<FloatingBallWidget />} />
-        <Route path="/wallpaper-window" element={<WallpaperWindow />} />
+        <Route element={<FloatingBallWidget />} path="/floating-widget" />
+        <Route element={<WallpaperWindow />} path="/wallpaper-window" />
       </Routes>
     </HashRouter>
   );
