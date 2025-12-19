@@ -1,4 +1,5 @@
 import { invoke } from '@tauri-apps/api/core';
+import { listen } from '@tauri-apps/api/event';
 import { availableMonitors, getAllWindows } from '@tauri-apps/api/window';
 
 const WALLPAPER_WINDOW_PREFIX = 'wallpaper';
@@ -10,32 +11,18 @@ const formatLabel = (monitor: any) => {
   );
 };
 
-class _Monitor {
-  private interval: number | null = null;
-  private lastMonitorCount = 0;
-
+class _Wallpaper {
   async start() {
-    this.stop();
     await this.syncWallpaperWindows();
-    this.interval = window.setInterval(async () => {
-      const monitors = await availableMonitors();
-      if (monitors.length !== this.lastMonitorCount) {
-        await this.syncWallpaperWindows();
-      }
-      this.lastMonitorCount = monitors.length;
-    }, 1000);
+    listen<any>('monitor-changed', (e) => {
+      this.syncWallpaperWindows(e.payload);
+    });
   }
 
-  stop() {
-    if (this.interval) {
-      window.clearInterval(this.interval);
-      this.interval = null;
-    }
-  }
-
-  async syncWallpaperWindows() {
-    const monitors = await availableMonitors();
+  async syncWallpaperWindows(monitors?: any[]) {
+    monitors ??= await availableMonitors();
     const windows = await getAllWindows();
+
     const wallpaperWindows = windows.filter((w) =>
       w.label.startsWith(WALLPAPER_WINDOW_PREFIX),
     );
@@ -56,7 +43,7 @@ class _Monitor {
       if (!win) {
         await invoke('create_wallpaper_window', {
           label,
-          url: 'index.html#/wallpaper-window',
+          url: 'index.html#/wallpaper',
           x: monitor.position.x,
           y: monitor.position.y,
           width: monitor.size.width,
@@ -67,4 +54,4 @@ class _Monitor {
   }
 }
 
-export const Monitor = new _Monitor();
+export const Wallpaper = new _Wallpaper();

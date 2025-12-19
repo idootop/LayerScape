@@ -1,11 +1,11 @@
 import type React from 'react';
 
-import { Monitor } from '@/core/wallpaper/monitor';
+import { Wallpaper } from '@/core/wallpaper';
 
 export const WallpaperPage: React.FC = () => {
   const handleEnableWallpaper = async () => {
     try {
-      await Monitor.syncWallpaperWindows();
+      await Wallpaper.syncWallpaperWindows();
     } catch (error) {
       console.error('Failed to init wallpaper:', error);
       alert('启动壁纸模式失败: ' + error);

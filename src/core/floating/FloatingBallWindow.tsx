@@ -1,35 +1,75 @@
-import { invoke } from '@tauri-apps/api/core';
+import { FloatingBall } from '.';
+import { useFloatingBall } from './useFloatingBall';
 
-import { useFloatingBallLogic } from './FloatingBall.logic';
-import { FloatingBallUI } from './FloatingBall.ui';
+export function FloatingBallWindow({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const { isHovered, snapSide, handleDragStart } = useFloatingBall();
 
-export function FloatingBallWindow() {
-  const { isHovered, isMenuOpen, snapSide, handleDragStart, toggleMenu } =
-    useFloatingBallLogic();
+  // 球体样式计算
+  const getBallStyle = () => {
+    const baseStyle: React.CSSProperties = {
+      width: `${FloatingBall.width}px`,
+      height: `${FloatingBall.height}px`,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      userSelect: 'none',
+      transition: 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
+      willChange: 'transform',
+      transform: 'translateX(0)',
+      opacity: 1,
+    };
 
-  const handleMenuItemClick = (action: string) => {
-    switch (action) {
-      case 'about':
-        console.log('About');
-        break;
-      case 'settings':
-        console.log('Settings');
-        break;
-      case 'quit':
-        invoke('quit_app');
-        break;
+    if (snapSide) {
+      if (!isHovered) {
+        // 吸附状态下，半透明
+        baseStyle.opacity = 0.8;
+      }
+
+      if (snapSide === 'left') {
+        if (!isHovered) {
+          // 收起：向左平移，只露右边
+          const offset =
+            FloatingBall.width -
+            FloatingBall.visibleWidth +
+            FloatingBall.margin;
+          baseStyle.transform = `translateX(-${offset}px)`;
+        } else {
+          baseStyle.transform = 'translateX(0)';
+        }
+      } else if (snapSide === 'right') {
+        if (!isHovered) {
+          // 收起：向右平移，只露左边
+          const offset =
+            FloatingBall.width -
+            FloatingBall.visibleWidth +
+            FloatingBall.margin;
+          baseStyle.transform = `translateX(${offset}px)`;
+        } else {
+          baseStyle.transform = 'translateX(0)';
+        }
+      }
     }
-    toggleMenu();
+
+    return baseStyle;
   };
 
   return (
-    <FloatingBallUI
-      isHovered={isHovered}
-      isMenuOpen={isMenuOpen}
-      onCloseMenu={() => toggleMenu(false)}
-      onMenuItemClick={handleMenuItemClick}
-      onMouseDown={handleDragStart}
-      snapSide={snapSide}
-    />
+    <div
+      style={{
+        width: '100vw',
+        height: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      <div onMouseDown={handleDragStart} style={getBallStyle()}>
+        {children}
+      </div>
+    </div>
   );
 }

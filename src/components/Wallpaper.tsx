@@ -64,7 +64,7 @@ function MonitorControl() {
   );
 }
 
-export const Wallpaper: React.FC = () => {
+export const WallpaperWidget: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const mousePosRef = useRef({ x: 0, y: 0 });
 
