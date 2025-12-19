@@ -1,3 +1,4 @@
+import { invoke } from '@tauri-apps/api/core';
 import { PhysicalPosition } from '@tauri-apps/api/dpi';
 import { emit } from '@tauri-apps/api/event';
 import { Image } from '@tauri-apps/api/image';
@@ -7,6 +8,8 @@ import { WebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { exit } from '@tauri-apps/plugin-process';
 
 import { getWebviewWindow } from '@/core/window';
+
+import { kIsMac, sleep } from '../utils';
 
 class _Tray {
   trayId = 'tray-main';
@@ -48,34 +51,31 @@ class _Tray {
       action: async (event) => {
         // 点击托盘图标显示窗口
         if (event.type === 'Click' && event.button === 'Left') {
-          let trayWin = await getWebviewWindow('tray');
-
-          if (!trayWin) {
-            // 动态创建窗口
-            trayWin = new WebviewWindow('tray', {
-              url: 'index.html#/tray',
-              width: 320,
-              height: 540,
-              decorations: false,
-              transparent: true,
-              visible: false,
-              skipTaskbar: true,
-              alwaysOnTop: true,
-              focusable: false,
-            });
-            // 等待窗口准备好
-            await new Promise((resolve) => {
-              trayWin?.once('tauri://created', resolve);
-            });
-          }
-
-          const isVisible = await trayWin.isVisible();
-          if (isVisible) {
+          if (await getWebviewWindow('tray')) {
             return;
           }
 
-          const isMac = navigator.userAgent.includes('Mac');
-          if (isMac) {
+          // 动态创建窗口
+          const trayWin = new WebviewWindow('tray', {
+            url: 'index.html#/tray',
+            width: 320,
+            height: 540,
+            decorations: false,
+            transparent: true,
+            visible: false,
+            skipTaskbar: true,
+            alwaysOnTop: true,
+            focus: true,
+            shadow: true,
+            resizable: false,
+          });
+
+          // 等待窗口准备好
+          await new Promise((resolve) => {
+            trayWin.once('tauri://created', resolve);
+          });
+
+          if (kIsMac) {
             // 调整位置
             const trayX = event.rect.position.x;
             const trayY = event.rect.position.y;
@@ -96,9 +96,16 @@ class _Tray {
             // 居中显示窗口
             await trayWin.center();
           }
+
+          // 显示窗口
           await emit('tray-show');
           await trayWin.show();
-          await trayWin.setFocus();
+
+          // 窗口加阴影
+          if (kIsMac) {
+            await sleep(200);
+            await invoke('set_window_shadow', { label: 'tray', shadow: true });
+          }
         }
       },
     });

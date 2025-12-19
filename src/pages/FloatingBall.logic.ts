@@ -7,6 +7,8 @@ import {
 } from '@tauri-apps/api/window';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { kIsMac } from '@/core/utils';
+
 import { onGlobalMouseEvent } from '../core/mouse';
 
 // 常量配置
@@ -239,7 +241,7 @@ export function useFloatingBallLogic() {
         }
 
         // 调用 Rust 命令一次性调整大小和位置
-        await invoke('resize_and_move', {
+        await invoke('resize_and_move_window', {
           x: Math.round(targetX),
           y: Math.round(targetY),
           width: expandedSize,
@@ -327,7 +329,7 @@ export function useFloatingBallLogic() {
           }
 
           // 调用 Rust 命令一次性调整大小和位置
-          await invoke('resize_and_move', {
+          await invoke('resize_and_move_window', {
             x: Math.round(targetX),
             y: Math.round(targetY),
             width: smallSize,
@@ -480,9 +482,8 @@ export function useFloatingBallLogic() {
         const scaleFactor = dragRef.current.scaleFactor;
         const visibleWidthPhys = CONFIG.VISIBLE_WIDTH * scaleFactor;
 
-        const isMac = navigator.userAgent.includes('Mac');
-        const mouseX = isMac ? mx * scaleFactor : mx;
-        const mouseY = isMac ? my * scaleFactor : my;
+        const mouseX = kIsMac ? mx * scaleFactor : mx;
+        const mouseY = kIsMac ? my * scaleFactor : my;
 
         let isHit = false;
         const currentSnapSide = snapSideRef.current;

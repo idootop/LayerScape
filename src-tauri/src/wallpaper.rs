@@ -53,24 +53,3 @@ pub fn create_wallpaper_window(
 
     Ok(())
 }
-
-#[tauri::command]
-pub fn set_window_level(window: tauri::WebviewWindow, level: String) -> Result<(), String> {
-    let is_below = level == "below";
-
-    #[cfg(target_os = "macos")]
-    {
-        if is_below {
-            use objc2_app_kit::NSWindow;
-            let ns_window_ptr = window.ns_window().map_err(|e| e.to_string())?;
-            let ns_window = unsafe { &*(ns_window_ptr as *const NSWindow) };
-            ns_window.setLevel(-2147483628 + 10); // kCGDesktopWindowLevel + 1
-        } else {
-            window
-                .set_always_on_bottom(true)
-                .map_err(|e| e.to_string())?;
-        };
-    }
-
-    Ok(())
-}

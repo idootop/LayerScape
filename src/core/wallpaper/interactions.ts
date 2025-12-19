@@ -17,7 +17,7 @@ export const useWallpaperInteractions = () => {
       'set_window_level',
       (level) => {
         enabledRef.current = level === 'below';
-        invoke('set_window_level', { window: win, level });
+        invoke('set_window_level', { label: win.label, level });
       },
     );
     return () => {

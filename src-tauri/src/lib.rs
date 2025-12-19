@@ -1,23 +1,7 @@
 mod background;
 mod inputs;
 mod wallpaper;
-
-#[tauri::command]
-fn resize_and_move(
-    window: tauri::Window,
-    x: i32,
-    y: i32,
-    width: u32,
-    height: u32,
-) -> Result<(), String> {
-    window
-        .set_size(tauri::PhysicalSize::new(width, height))
-        .map_err(|e| e.to_string())?;
-    window
-        .set_position(tauri::PhysicalPosition::new(x, y))
-        .map_err(|e| e.to_string())?;
-    Ok(())
-}
+mod window;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -27,13 +11,20 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_process::init())
         .setup(|app| {
+            #[cfg(target_os = "macos")]
+            {
+                // 设置为任务栏应用（隐藏 Dock 栏窗口图标）
+                app.set_activation_policy(tauri::ActivationPolicy::Accessory);
+            }
+
+            background::create_background_window(app.handle()); // 创建全局隐藏窗口
             inputs::init(app.handle()); // 初始化全局输入事件（鼠标位置、点击等）
-            background::init(app.handle()); // 创建全局隐藏窗口
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
-            resize_and_move,
-            wallpaper::set_window_level,
+            window::set_window_shadow,
+            window::set_window_level,
+            window::resize_and_move_window,
             wallpaper::create_wallpaper_window
         ])
         .run(tauri::generate_context!())

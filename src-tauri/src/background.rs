@@ -1,5 +1,5 @@
 // 创建全局隐藏窗口，用来做一些后台任务，如初始化应用等
-pub fn init(app: &tauri::AppHandle) {
+pub fn create_background_window(app: &tauri::AppHandle) {
     let _ = tauri::WebviewWindowBuilder::new(
         app,
         "background",
