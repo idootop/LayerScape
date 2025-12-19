@@ -13,7 +13,6 @@ const formatLabel = (monitor: any) => {
 
 class _Wallpaper {
   async start() {
-    await this.syncWallpaperWindows();
     listen<any>('monitor-changed', (e) => {
       this.syncWallpaperWindows(e.payload);
     });
@@ -32,7 +31,7 @@ class _Wallpaper {
     // 1. 销毁不再存在的显示器对应的窗口
     for (const win of wallpaperWindows) {
       if (!currentLabels.includes(win.label)) {
-        await win.destroy();
+        await win.close();
       }
     }
 
