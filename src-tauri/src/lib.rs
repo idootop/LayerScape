@@ -1,4 +1,5 @@
 mod background;
+mod floating_ball;
 mod inputs;
 mod wallpaper;
 mod window;
@@ -25,7 +26,8 @@ pub fn run() {
             window::set_window_shadow,
             window::set_window_level,
             window::resize_and_move_window,
-            wallpaper::create_wallpaper_window
+            wallpaper::create_wallpaper_window,
+            floating_ball::create_floating_ball_window
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

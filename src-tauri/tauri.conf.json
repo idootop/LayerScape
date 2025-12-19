@@ -12,24 +12,11 @@
   "app": {
     "macOSPrivateApi": true,
     "windows": [
-      
       {
         "label": "main",
         "title": "LayerScape",
         "width": 800,
         "height": 600
-      },
-      {
-        "label": "floating-ball",
-        "url": "index.html#/floating-widget",
-        "width": 60,
-        "height": 60,
-        "shadow": false,
-        "alwaysOnTop": true,
-        "transparent": true,
-        "decorations": false,
-        "acceptFirstMouse": true,
-        "skipTaskbar": true
       }
     ],
     "security": {

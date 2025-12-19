@@ -3,6 +3,8 @@ import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { Tray } from '@/core/tray';
 import { Monitor } from '@/core/wallpaper/monitor';
 
+import { FloatingBall } from './floating';
+
 let isInitialized = false;
 
 export async function initAPP() {
@@ -20,4 +22,5 @@ export async function initAPP() {
 async function _initAPP() {
   await Tray.init();
   await Monitor.start();
+  await FloatingBall.init();
 }

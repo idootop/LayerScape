@@ -7,7 +7,7 @@ export const HomePage: React.FC = () => {
       <h1>👋 LayerScape</h1>
       <p>探索电脑桌面壁纸层 + 悬浮层 + 状态栏的各种 GUI 交互能力。</p>
       <div className="features-grid">
-        <Link className="feature-card" to="/floating-ball">
+        <Link className="feature-card" to="/floating">
           <h3>桌面悬浮球</h3>
           <p>交互式悬浮球组件</p>
         </Link>

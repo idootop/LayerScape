@@ -7,9 +7,11 @@ import {
 } from '@tauri-apps/api/window';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { onGlobalMouseEvent } from '@/core/mouse';
 import { kIsMac } from '@/core/utils';
 
-import { onGlobalMouseEvent } from '../core/mouse';
+// todo 位置初始化闪烁问题
+// todo 显示器移除时恢复初始位置
 
 // 常量配置
 export const CONFIG = {

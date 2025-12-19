@@ -7,10 +7,10 @@ import { TrayWindow } from '@/core/tray/TrayWindow';
 
 import Layout from './components/Layout';
 import { Wallpaper } from './components/Wallpaper';
+import { FloatingBallWindow } from './core/floating/FloatingBallWindow';
 import { initAPP } from './core/init';
 import { WallpaperWindow } from './core/wallpaper/WallpaperWindow';
-import FloatingBall from './pages/FloatingBall';
-import FloatingBallWidget from './pages/FloatingBallWidget';
+import { FloatingBallPage } from './pages/FloatingBallPage';
 import { HomePage } from './pages/HomePage';
 import { TrayPage } from './pages/TrayPage';
 import { WallpaperPage } from './pages/WallpaperPage';
@@ -25,7 +25,7 @@ function App() {
       <Routes>
         <Route element={<Layout />} path="/">
           <Route element={<HomePage />} index />
-          <Route element={<FloatingBall />} path="floating-ball" />
+          <Route element={<FloatingBallPage />} path="floating" />
           <Route element={<WallpaperPage />} path="wallpaper" />
           <Route element={<TrayPage />} path="status-bar" />
         </Route>
@@ -39,7 +39,7 @@ function App() {
           }
           path="/tray"
         />
-        <Route element={<FloatingBallWidget />} path="/floating-widget" />
+        <Route element={<FloatingBallWindow />} path="/floating-ball" />
         <Route
           element={
             <WallpaperWindow>

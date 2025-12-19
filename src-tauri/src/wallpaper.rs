@@ -14,6 +14,7 @@ pub fn create_wallpaper_window(
             .decorations(false)
             .transparent(true)
             .skip_taskbar(true)
+            .shadow(false)
             .always_on_bottom(true);
 
     let window = builder.build().map_err(|e| e.to_string())?;
