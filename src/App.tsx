@@ -29,8 +29,8 @@ function App() {
           <Route element={<WallpaperPage />} path="wallpaper" />
           <Route element={<TrayPage />} path="status-bar" />
         </Route>
-        {/* 只是用来做一些全局任务，如初始化窗口等 */}
-        <Route element={<div />} path="/app" />
+        {/* 全局隐藏窗口，用来做一些后台任务，如初始化应用等 */}
+        <Route element={<div />} path="/background" />
         <Route
           element={
             <TrayWindow>

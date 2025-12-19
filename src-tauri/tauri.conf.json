@@ -12,18 +12,7 @@
   "app": {
     "macOSPrivateApi": true,
     "windows": [
-      {
-        "label": "app",
-        "title": "",
-        "url": "index.html#/app",
-        "width": 0,
-        "height": 0,
-        "shadow": false,
-        "alwaysOnBottom": true,
-        "transparent": true,
-        "decorations": false,
-        "skipTaskbar": true
-      },
+      
       {
         "label": "main",
         "title": "LayerScape",

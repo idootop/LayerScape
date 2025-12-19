@@ -1,10 +1,11 @@
-import { invoke } from '@tauri-apps/api/core';
 import type React from 'react';
+
+import { syncWallpaperWindows } from '@/core/monitor';
 
 export const WallpaperPage: React.FC = () => {
   const handleEnableWallpaper = async () => {
     try {
-      await invoke('init_wallpaper_windows');
+      await syncWallpaperWindows();
     } catch (error) {
       console.error('Failed to init wallpaper:', error);
       alert('启动壁纸模式失败: ' + error);

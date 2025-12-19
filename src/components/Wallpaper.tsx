@@ -179,7 +179,7 @@ export const Wallpaper: React.FC = () => {
       style={{
         width: '100%',
         height: '100%',
-        background: 'rgba(0, 0, 0, 0.3)',
+        background: 'rgba(0, 0, 0, 0.1)',
       }}
     >
       <canvas

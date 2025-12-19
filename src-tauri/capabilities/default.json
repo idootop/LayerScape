@@ -2,7 +2,7 @@
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
   "description": "Capability for the main window",
-  "windows": ["app", "main", "tray", "floating-ball", "wallpaper-*"],
+  "windows": ["background", "main", "tray", "floating-ball", "wallpaper-*"],
   "permissions": [
     "core:default",
     "opener:default",
