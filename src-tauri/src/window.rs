@@ -2,22 +2,20 @@ use tauri::Manager;
 
 #[tauri::command]
 pub fn set_window_shadow(app: tauri::AppHandle, label: String, shadow: bool) -> Result<(), String> {
-    #[cfg(not(target_os = "macos"))]
+    #[cfg(target_os = "macos")]
     {
-        Ok(())
-    }
+        let window = app
+            .get_webview_window(label.as_str())
+            .ok_or("Window not found")?;
 
-    let window = app
-        .get_webview_window(label.as_str())
-        .ok_or("Window not found")?;
+        use objc2_app_kit::NSWindow;
 
-    use objc2_app_kit::NSWindow;
-
-    if let Ok(ptr) = window.ns_window() {
-        unsafe {
-            let ns_win = &*(ptr as *const NSWindow);
-            ns_win.setHasShadow(shadow);
-            ns_win.invalidateShadow();
+        if let Ok(ptr) = window.ns_window() {
+            unsafe {
+                let ns_win = &*(ptr as *const NSWindow);
+                ns_win.setHasShadow(shadow);
+                ns_win.invalidateShadow();
+            }
         }
     }
 
@@ -26,24 +24,21 @@ pub fn set_window_shadow(app: tauri::AppHandle, label: String, shadow: bool) -> 
 
 #[tauri::command]
 pub fn set_window_level(app: tauri::AppHandle, label: String, level: String) -> Result<(), String> {
-    #[cfg(not(target_os = "macos"))]
+    #[cfg(target_os = "macos")]
     {
-        // todo windows 窗口位置
-        Ok(())
+        let window = app
+            .get_webview_window(label.as_str())
+            .ok_or("Window not found")?;
+
+        if level == "below" {
+            use objc2_app_kit::NSWindow;
+            let ns_window_ptr = window.ns_window().unwrap();
+            let ns_window = unsafe { &*(ns_window_ptr as *const NSWindow) };
+            ns_window.setLevel(-2147483628 + 10); // kCGDesktopWindowLevel + 1
+        } else {
+            window.set_always_on_bottom(true).unwrap();
+        };
     }
-
-    let window = app
-        .get_webview_window(label.as_str())
-        .ok_or("Window not found")?;
-
-    if level == "below" {
-        use objc2_app_kit::NSWindow;
-        let ns_window_ptr = window.ns_window().unwrap();
-        let ns_window = unsafe { &*(ns_window_ptr as *const NSWindow) };
-        ns_window.setLevel(-2147483628 + 10); // kCGDesktopWindowLevel + 1
-    } else {
-        window.set_always_on_bottom(true).unwrap();
-    };
 
     Ok(())
 }
