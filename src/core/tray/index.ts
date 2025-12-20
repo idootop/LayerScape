@@ -50,7 +50,11 @@ class _Tray {
       showMenuOnLeftClick: false, // 右键菜单
       action: async (event) => {
         // 点击托盘图标显示窗口
-        if (event.type === 'Click' && event.button === 'Left') {
+        if (
+          event.type === 'Click' &&
+          event.button === 'Left' &&
+          event.buttonState === 'Up'
+        ) {
           if (await getWebviewWindow('tray')) {
             return;
           }
@@ -75,27 +79,24 @@ class _Tray {
             trayWin.once('tauri://created', resolve);
           });
 
-          if (kIsMac) {
-            // 调整位置
-            const trayX = event.rect.position.x;
-            const trayY = event.rect.position.y;
-            const trayWidth = event.rect.size.width;
-            const trayHeight = event.rect.size.height;
+          // 调整位置
+          const trayX = event.rect.position.x;
+          const trayY = event.rect.position.y;
+          const trayWidth = event.rect.size.width;
+          const trayHeight = event.rect.size.height;
 
-            const outerSize = await trayWin.outerSize();
-            const winWidth = outerSize.width;
+          const outerSize = await trayWin.outerSize();
+          const winWidth = outerSize.width;
+          const winHeight = outerSize.height;
 
-            const trayCenterX = trayX + trayWidth / 2 - winWidth / 2;
-            const trayCenterY =
-              trayY + trayHeight + 4 * window.devicePixelRatio;
+          const trayCenterX = trayX + trayWidth / 2 - winWidth / 2;
+          const trayCenterY = kIsMac
+            ? trayY + trayHeight + 4 * window.devicePixelRatio
+            : trayY - winHeight - 4 * window.devicePixelRatio;
 
-            await trayWin.setPosition(
-              new PhysicalPosition(trayCenterX, trayCenterY),
-            );
-          } else {
-            // 居中显示窗口
-            await trayWin.center();
-          }
+          await trayWin.setPosition(
+            new PhysicalPosition(trayCenterX, trayCenterY),
+          );
 
           // 显示窗口
           await emit('tray-show');
