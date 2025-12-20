@@ -18,7 +18,7 @@ pub fn run() {
                 app.set_activation_policy(tauri::ActivationPolicy::Accessory);
             }
 
-            background::create_background_window(app.handle()); // 创建全局隐藏窗口
+            background::create_background_window(app.handle())?; // 创建全局隐藏窗口
             inputs::init(app.handle()); // 初始化全局输入事件（鼠标位置、点击等）
             Ok(())
         })
