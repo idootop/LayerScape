@@ -2,21 +2,22 @@ import { invoke } from '@tauri-apps/api/core';
 import { emit } from '@tauri-apps/api/event';
 import { availableMonitors, primaryMonitor } from '@tauri-apps/api/window';
 
-import { sleep } from '../utils';
 import { getWebviewWindow } from '../window';
+import { kFloatingMenuItems } from './FloatingMenu';
 
 class _FloatingBall {
   width = 60; // 悬浮球宽度
   height = 60; // 悬浮球高度
   margin = 8; // 悬浮球外边距
+  // 贴边收起
   visibleWidth = 16; // 悬浮球可见宽度
   snapThreshold = 100; // 边缘吸附阈值
   snapDelay = 200; // 边缘吸附延迟时间
-
-  menuDistance = 0; // 菜单与悬浮球的距离
+  // 菜单相关
   menuWidth = 160; // 菜单宽度
-  menuHeight = 240; // 菜单高度 (大概值)
-  contextMenuHeight = 100; // 右键菜单高度
+  menuPadding = 8; // 菜单内边距
+  menuItemHeight = 36; // 菜单项高度
+  menuDistance = 0; // 菜单与悬浮球的距离（悬浮球本身有外边距）
   menuRect: { x: number; y: number; width: number; height: number } | null =
     null;
 
@@ -47,6 +48,7 @@ class _FloatingBall {
       await invoke('create_floating_ball_window', {
         label: 'floating-ball',
         url: 'index.html#/floating-ball',
+        shadow: false,
         ...pos,
       });
     } else {
@@ -105,10 +107,12 @@ class _FloatingBall {
 
     let menuX = 0;
     let menuY = 0;
+
+    const menuItems = kFloatingMenuItems[mode];
     const targetWidth = Math.round(this.menuWidth * factor);
-    // 根据模式决定高度
     const targetHeight = Math.round(
-      (mode === 'context' ? this.contextMenuHeight : this.menuHeight) * factor,
+      (this.menuItemHeight * menuItems.length + (this.menuPadding + 1) * 2) *
+        factor,
     );
 
     menuX = pos.x + size.width / 2 - targetWidth / 2;
@@ -142,28 +146,18 @@ class _FloatingBall {
     if (!menuWin) {
       await invoke('create_floating_ball_window', {
         label: 'floating-menu',
-        url: 'index.html#/floating-menu',
+        url: `index.html#/floating-menu?mode=${mode}`,
+        shadow: true,
         ...mRect,
       });
-      // 菜单需要阴影
-      await sleep(200);
-      await invoke('set_window_shadow', {
-        label: 'floating-menu',
-        shadow: true,
-      });
-
-      // 等待React挂载
-      await sleep(300);
-      await emit('floating-menu-mode', { mode });
     } else {
+      // 发送模式切换事件
+      await emit('floating-menu-mode', mode);
       // 窗口已存在，先改变尺寸和位置
       await invoke('resize_and_move_window', {
         label: 'floating-menu',
         ...mRect,
       });
-      await menuWin.show();
-      // 发送模式切换事件
-      await emit('floating-menu-mode', { mode });
     }
   }
 
@@ -172,7 +166,6 @@ class _FloatingBall {
     this.menuRect = null;
     const menuWin = await getWebviewWindow('floating-menu');
     if (menuWin) {
-      // 通知可能存在的监听者
       await emit('floating-menu-closed');
       await menuWin.close();
     }

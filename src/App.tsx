@@ -6,7 +6,6 @@ import './App.css';
 import { TrayWindow } from '@/core/tray/TrayWindow';
 
 import { FloatingBallWidget } from './components/FloatingBall';
-import { FloatingMenuWidget } from './components/FloatingMenu';
 import Layout from './components/Layout';
 import { WallpaperWidget } from './components/Wallpaper';
 import { FloatingBallWindow } from './core/floating/FloatingBallWindow';
@@ -43,11 +42,7 @@ const CORE_ROUTES: React.ReactNode[] = [
   />,
   // 悬浮球菜单窗口
   <Route
-    element={
-      <FloatingMenuWindow>
-        <FloatingMenuWidget />
-      </FloatingMenuWindow>
-    }
+    element={<FloatingMenuWindow />}
     key="floating-menu"
     path="/floating-menu"
   />,

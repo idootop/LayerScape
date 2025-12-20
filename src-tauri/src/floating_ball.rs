@@ -7,13 +7,14 @@ pub fn create_floating_ball_window(
     y: i32,
     width: u32,
     height: u32,
+    shadow: bool,
 ) -> Result<(), String> {
     let window = tauri::WebviewWindowBuilder::new(&app, &label, tauri::WebviewUrl::App(url.into()))
         .decorations(false)
         .transparent(true)
         .skip_taskbar(true)
         .always_on_top(true)
-        .shadow(false)
+        .shadow(shadow)
         .resizable(false)
         .build()
         .map_err(|e| e.to_string())?;
@@ -21,20 +22,17 @@ pub fn create_floating_ball_window(
     #[cfg(target_os = "macos")]
     {
         use objc2_app_kit::{
-            NSStatusWindowLevel, NSWindow, NSWindowCollectionBehavior, NSWindowLevel,
+            NSScreenSaverWindowLevel, NSWindow, NSWindowCollectionBehavior, NSWindowLevel,
         };
 
         let ns_window_ptr = window.ns_window().map_err(|e| e.to_string())?;
         let ns_window = unsafe { &*(ns_window_ptr as *const NSWindow) };
 
-        // 1. 确保透明背景无阴影
-        ns_window.setHasShadow(false);
-
-        // 2. 将窗口设置为状态栏层级
-        let level: NSWindowLevel = NSStatusWindowLevel;
+        // 将窗口设置为状态栏层级
+        let level: NSWindowLevel = NSScreenSaverWindowLevel - 1;
         ns_window.setLevel(level);
 
-        // 3. 设置窗口行为
+        // 设置窗口行为
         let behavior = ns_window.collectionBehavior();
         ns_window.setCollectionBehavior(
             behavior
