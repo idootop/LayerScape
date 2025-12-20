@@ -2,22 +2,20 @@ use tauri::Manager;
 
 #[tauri::command]
 pub fn set_window_shadow(app: tauri::AppHandle, label: String, shadow: bool) -> Result<(), String> {
-    #[cfg(not(target_os = "macos"))]
-    {
-        Ok(())
-    }
-
     let window = app
         .get_webview_window(label.as_str())
         .ok_or("Window not found")?;
 
-    use objc2_app_kit::NSWindow;
+    #[cfg(target_os = "macos")]
+    {
+        use objc2_app_kit::NSWindow;
 
-    if let Ok(ptr) = window.ns_window() {
-        unsafe {
-            let ns_win = &*(ptr as *const NSWindow);
-            ns_win.setHasShadow(shadow);
-            ns_win.invalidateShadow();
+        if let Ok(ptr) = window.ns_window() {
+            unsafe {
+                let ns_win = &*(ptr as *const NSWindow);
+                ns_win.setHasShadow(shadow);
+                ns_win.invalidateShadow();
+            }
         }
     }
 
@@ -26,24 +24,25 @@ pub fn set_window_shadow(app: tauri::AppHandle, label: String, shadow: bool) -> 
 
 #[tauri::command]
 pub fn set_window_level(app: tauri::AppHandle, label: String, level: String) -> Result<(), String> {
-    #[cfg(not(target_os = "macos"))]
-    {
-        // todo windows 窗口位置
-        Ok(())
-    }
-
     let window = app
         .get_webview_window(label.as_str())
         .ok_or("Window not found")?;
 
-    if level == "below" {
-        use objc2_app_kit::NSWindow;
-        let ns_window_ptr = window.ns_window().unwrap();
-        let ns_window = unsafe { &*(ns_window_ptr as *const NSWindow) };
-        ns_window.setLevel(-2147483628 + 10); // kCGDesktopWindowLevel + 1
-    } else {
-        window.set_always_on_bottom(true).unwrap();
-    };
+    let is_below = level == "below";
+
+    #[cfg(target_os = "macos")]
+    {
+        if is_below {
+            use objc2_app_kit::NSWindow;
+            let ns_window_ptr = window.ns_window().map_err(|e| e.to_string())?;
+            let ns_window = unsafe { &*(ns_window_ptr as *const NSWindow) };
+            ns_window.setLevel(-2147483628 + 10); // kCGDesktopWindowLevel + 1
+        } else {
+            window
+                .set_always_on_bottom(true)
+                .map_err(|e| e.to_string())?;
+        };
+    }
 
     Ok(())
 }
@@ -61,17 +60,11 @@ pub fn resize_and_move_window(
         .get_webview_window(label.as_str())
         .ok_or("Window not found")?;
 
-    let handle = app.clone();
-    handle
-        .run_on_main_thread(move || {
-            window
-                .set_size(tauri::PhysicalSize::new(width, height))
-                .unwrap();
-            window
-                .set_position(tauri::PhysicalPosition::new(x, y))
-                .unwrap();
-        })
+    window
+        .set_size(tauri::PhysicalSize::new(width, height))
         .map_err(|e| e.to_string())?;
-
+    window
+        .set_position(tauri::PhysicalPosition::new(x, y))
+        .map_err(|e| e.to_string())?;
     Ok(())
 }
