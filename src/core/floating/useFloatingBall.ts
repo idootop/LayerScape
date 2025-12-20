@@ -1,4 +1,3 @@
-import { listen } from '@tauri-apps/api/event';
 import {
   availableMonitors,
   getCurrentWindow,
@@ -11,6 +10,7 @@ import { onGlobalMouseEvent } from '@/core/mouse';
 import { kIsMac } from '@/core/utils';
 
 import { FloatingBall } from '.';
+import { useListen } from '../event';
 import { getWebviewWindow } from '../window';
 
 export type SnapSide = 'left' | 'right' | null;
@@ -154,7 +154,7 @@ export function useFloatingBall() {
 
   const handleClick = () => {
     if (wasDraggedRef.current) return;
-    FloatingBall.showMenu();
+    // todo 打开主窗口
   };
 
   // 拖拽过程中与结束后的逻辑
@@ -203,6 +203,11 @@ export function useFloatingBall() {
       document.removeEventListener('mouseup', handleMouseUp);
     };
   }, [isDragging, moveWindow, checkSnap, updateWindowRectCache]);
+
+  // 监听菜单关闭事件，取消激活状态
+  useListen('floating-menu-closed', () => {
+    setIsHovered(false);
+  });
 
   // 全局鼠标悬停检测
   useEffect(() => {
@@ -344,30 +349,24 @@ export function useFloatingBall() {
   }, [updateWindowRectCache, checkSnap]);
 
   // 检测显示器变更，如果窗口所在显示器消失，恢复到主屏幕初始位置
-  useEffect(() => {
-    const unlisten = listen<Monitor[]>('monitor-changed', async (e) => {
-      const monitors = e.payload;
-      const { x, y, width, height } = windowRectRef.current;
-      const cx = x + width / 2;
-      const cy = y + height / 2;
+  useListen<Monitor[]>('monitor-changed', async (monitors) => {
+    const { x, y, width, height } = windowRectRef.current;
+    const cx = x + width / 2;
+    const cy = y + height / 2;
 
-      // 检查当前中心点是否还在任何一个显示器范围内
-      const isOnAnyMonitor = monitors.some((m) => {
-        const { x: mx, y: my } = m.position;
-        const { width: mw, height: mh } = m.size;
-        return cx >= mx && cx < mx + mw && cy >= my && cy < my + mh;
-      });
-
-      if (!isOnAnyMonitor) {
-        await FloatingBall.resetPosition();
-        await updateWindowRectCache();
-        await checkSnap();
-      }
+    // 检查当前中心点是否还在任何一个显示器范围内
+    const isOnAnyMonitor = monitors.some((m) => {
+      const { x: mx, y: my } = m.position;
+      const { width: mw, height: mh } = m.size;
+      return cx >= mx && cx < mx + mw && cy >= my && cy < my + mh;
     });
-    return () => {
-      unlisten.then((u) => u());
-    };
-  }, [updateWindowRectCache, checkSnap]);
+
+    if (!isOnAnyMonitor) {
+      await FloatingBall.resetPosition();
+      await updateWindowRectCache();
+      await checkSnap();
+    }
+  });
 
   return { isDragging, isHovered, snapSide, handleDragStart, handleClick };
 }

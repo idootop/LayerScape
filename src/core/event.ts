@@ -1,22 +1,23 @@
+import { listen } from '@tauri-apps/api/event';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
+import { useEffect } from 'react';
 
 export function emit2window(
   event: string,
   data: any,
-  window = getCurrentWebviewWindow(),
+  label = getCurrentWebviewWindow().label,
 ) {
   const win = getCurrentWebviewWindow();
-  return win.emit(event, { window: window.label, data: data });
+  return win.emitTo(label, event, data);
 }
 
-export function listen2window<T>(
-  event: string,
-  callback: (data: T) => void,
-  window = getCurrentWebviewWindow(),
-) {
-  const win = getCurrentWebviewWindow();
-  return win.listen<any>(event, (event) => {
-    if (event.payload?.window !== window.label) return;
-    callback(event.payload.data);
-  });
+export function useListen<T>(event: string, callback: (data: T) => void) {
+  useEffect(() => {
+    const unlisten = listen<T>(event, async (event) => {
+      callback(event.payload);
+    });
+    return () => {
+      unlisten.then((u) => u());
+    };
+  }, [event, callback]);
 }

@@ -3,23 +3,16 @@ import type React from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import '../App.css'; // Ensure styles are available
 
-import { listen } from '@tauri-apps/api/event';
-import { useEffect } from 'react';
+import { useListen } from '@/core/event';
 
 const Layout: React.FC = () => {
   const path = useLocation().pathname;
   const navigate = useNavigate();
 
-  useEffect(() => {
+  useListen<string>('navigate', (to) => {
     if (path === '/tray') return;
-    const unlisten = listen<string>('navigate', (event) => {
-      console.log('main-goto-page', event.payload);
-      navigate(event.payload);
-    });
-    return () => {
-      unlisten.then((u) => u());
-    };
-  }, []);
+    navigate(to);
+  });
 
   return (
     <div className="app-layout">

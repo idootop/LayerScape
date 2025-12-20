@@ -49,12 +49,17 @@ pub fn set_window_level(app: tauri::AppHandle, label: String, level: String) -> 
 
 #[tauri::command]
 pub fn resize_and_move_window(
-    window: tauri::Window,
+    app: tauri::AppHandle,
+    label: String,
     x: i32,
     y: i32,
     width: u32,
     height: u32,
 ) -> Result<(), String> {
+    let window = app
+        .get_webview_window(label.as_str())
+        .ok_or("Window not found")?;
+
     window
         .set_size(tauri::PhysicalSize::new(width, height))
         .map_err(|e| e.to_string())?;

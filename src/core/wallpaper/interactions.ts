@@ -4,26 +4,20 @@ import { useEffect, useRef } from 'react';
 
 import { type GlobalMouseEvent, onGlobalMouseEvent } from '@/core/mouse';
 
-import { listen2window } from '../event';
+import { useListen } from '../event';
 
 export const useWallpaperInteractions = () => {
   const enabledRef = useRef(true);
   const windowRectRef = useRef({ x: 0, y: 0, width: 0, height: 0 });
 
   // 监听切换层级指令
-  useEffect(() => {
-    const win = getCurrentWebviewWindow();
-    const unlisten = listen2window<'below' | 'above'>(
-      'set_window_level',
-      (level) => {
-        enabledRef.current = level === 'below';
-        invoke('set_window_level', { label: win.label, level });
-      },
-    );
-    return () => {
-      unlisten.then((u) => u());
-    };
-  }, []);
+  useListen<'below' | 'above'>('set_window_level', (level) => {
+    enabledRef.current = level === 'below';
+    invoke('set_window_level', {
+      label: getCurrentWebviewWindow().label,
+      level,
+    });
+  });
 
   // 初始化窗口大小位置
   useEffect(() => {

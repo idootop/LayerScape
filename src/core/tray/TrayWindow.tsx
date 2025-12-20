@@ -1,8 +1,9 @@
-import { listen } from '@tauri-apps/api/event';
 import { getCurrentWindow } from '@tauri-apps/api/window';
-import { useEffect, useRef } from 'react';
+import { useRef } from 'react';
 
 import { useWindowFocus } from '@/core/window';
+
+import { useListen } from '../event';
 
 interface TrayWindowProps {
   children: React.ReactNode;
@@ -11,14 +12,9 @@ interface TrayWindowProps {
 export const TrayWindow = ({ children }: TrayWindowProps) => {
   const trayShowTimeRef = useRef(0);
 
-  useEffect(() => {
-    const unlisten = listen<number>('tray-show', () => {
-      trayShowTimeRef.current = Date.now();
-    });
-    return () => {
-      unlisten.then((f) => f());
-    };
-  }, []);
+  useListen('tray-show', () => {
+    trayShowTimeRef.current = Date.now();
+  });
 
   useWindowFocus({
     onBlur: async () => {

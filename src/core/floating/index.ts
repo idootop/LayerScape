@@ -1,9 +1,6 @@
 import { invoke } from '@tauri-apps/api/core';
-import {
-  availableMonitors,
-  PhysicalPosition,
-  primaryMonitor,
-} from '@tauri-apps/api/window';
+import { emit } from '@tauri-apps/api/event';
+import { availableMonitors, primaryMonitor } from '@tauri-apps/api/window';
 
 import { sleep } from '../utils';
 import { getWebviewWindow } from '../window';
@@ -19,6 +16,7 @@ class _FloatingBall {
   menuDistance = 0; // 菜单与悬浮球的距离
   menuWidth = 160; // 菜单宽度
   menuHeight = 240; // 菜单高度 (大概值)
+  contextMenuHeight = 100; // 右键菜单高度
   menuRect: { x: number; y: number; width: number; height: number } | null =
     null;
 
@@ -71,8 +69,17 @@ class _FloatingBall {
     });
   }
 
-  // 显示菜单
+  // 显示菜单 (左键默认菜单)
   async showMenu() {
+    await this._showMenuInternal('default');
+  }
+
+  // 显示右键菜单
+  async showContextMenu() {
+    await this._showMenuInternal('context');
+  }
+
+  private async _showMenuInternal(mode: 'default' | 'context') {
     const ballWin = await getWebviewWindow('floating-ball');
     if (!ballWin) return;
 
@@ -96,20 +103,25 @@ class _FloatingBall {
     const { x: mx, y: my } = monitor.position;
     const { width: mw, height: mh } = monitor.size;
 
-    // 计算菜单位置
-    // 优先在球的上方，如果上方放不下，再放到下方
-    let menuX = pos.x + size.width / 2 - (this.menuWidth * factor) / 2;
-    let menuY = pos.y - this.menuHeight * factor - this.menuDistance * factor;
+    let menuX = 0;
+    let menuY = 0;
+    const targetWidth = Math.round(this.menuWidth * factor);
+    // 根据模式决定高度
+    const targetHeight = Math.round(
+      (mode === 'context' ? this.contextMenuHeight : this.menuHeight) * factor,
+    );
 
-    // 边界检测与修正
+    menuX = pos.x + size.width / 2 - targetWidth / 2;
+    menuY = pos.y - targetHeight - this.menuDistance * factor;
+
     // 水平修正
     if (menuX < mx) {
       menuX = mx + 10 * factor;
-    } else if (menuX + this.menuWidth * factor > mx + mw) {
-      menuX = mx + mw - this.menuWidth * factor - 10 * factor;
+    } else if (menuX + targetWidth > mx + mw) {
+      menuX = mx + mw - targetWidth - 10 * factor;
     }
 
-    // 垂直修正：如果上方放不下，且下方空间更大，就放到下方
+    // 垂直修正
     if (menuY < my) {
       const spaceBelow = my + mh - (pos.y + size.height);
       const spaceAbove = pos.y - my;
@@ -121,8 +133,8 @@ class _FloatingBall {
     const mRect = {
       x: Math.round(menuX),
       y: Math.round(menuY),
-      width: Math.round(this.menuWidth * factor),
-      height: Math.round(this.menuHeight * factor),
+      width: targetWidth,
+      height: targetHeight,
     };
     this.menuRect = mRect;
 
@@ -139,9 +151,19 @@ class _FloatingBall {
         label: 'floating-menu',
         shadow: true,
       });
+
+      // 等待React挂载
+      await sleep(300);
+      await emit('floating-menu-mode', { mode });
     } else {
-      await menuWin.setPosition(new PhysicalPosition(mRect.x, mRect.y));
+      // 窗口已存在，先改变尺寸和位置
+      await invoke('resize_and_move_window', {
+        label: 'floating-menu',
+        ...mRect,
+      });
       await menuWin.show();
+      // 发送模式切换事件
+      await emit('floating-menu-mode', { mode });
     }
   }
 
@@ -150,6 +172,8 @@ class _FloatingBall {
     this.menuRect = null;
     const menuWin = await getWebviewWindow('floating-menu');
     if (menuWin) {
+      // 通知可能存在的监听者
+      await emit('floating-menu-closed');
       await menuWin.close();
     }
   }

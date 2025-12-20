@@ -57,6 +57,11 @@ export function FloatingBallWindow({
     return baseStyle;
   };
 
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    FloatingBall.showContextMenu();
+  };
+
   return (
     <div
       style={{
@@ -67,7 +72,11 @@ export function FloatingBallWindow({
         justifyContent: 'center',
       }}
     >
-      <div onMouseDown={handleDragStart} style={getBallStyle()}>
+      <div
+        onContextMenu={handleContextMenu}
+        onMouseDown={handleDragStart}
+        style={getBallStyle()}
+      >
         {children}
       </div>
     </div>

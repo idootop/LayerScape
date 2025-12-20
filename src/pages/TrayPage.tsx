@@ -15,7 +15,7 @@ export const TrayPage: React.FC = () => {
   };
 
   return (
-    <div className="module-page" style={{ padding: '20px' }}>
+    <div className="module-page">
       <h2>状态栏小工具</h2>
       <p>这里将实现状态栏小工具（支持动态图标 + 自定菜单页面）。</p>
 
