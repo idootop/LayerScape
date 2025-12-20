@@ -13,10 +13,7 @@ pub fn set_window_shadow(app: tauri::AppHandle, label: String, shadow: bool) -> 
         if let Ok(ptr) = window.ns_window() {
             unsafe {
                 let ns_win = &*(ptr as *const NSWindow);
-                ns_win.setHasShadow(false);
-                if shadow {
-                    ns_win.setHasShadow(true);
-                }
+                ns_win.setHasShadow(shadow);
                 ns_win.invalidateShadow();
             }
         }

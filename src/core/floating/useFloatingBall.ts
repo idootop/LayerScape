@@ -11,6 +11,7 @@ import { onGlobalMouseEvent } from '@/core/mouse';
 import { kIsMac } from '@/core/utils';
 
 import { FloatingBall } from '.';
+import { getWebviewWindow } from '../window';
 
 export type SnapSide = 'left' | 'right' | null;
 
@@ -30,6 +31,7 @@ export function useFloatingBall() {
   const isMovingWindow = useRef(false);
   const windowRectRef = useRef({ x: 0, y: 0, width: 0, height: 0 });
   const isDraggingRef = useRef(isDragging);
+  const wasDraggedRef = useRef(false);
   const snapSideRef = useRef(snapSide);
   const snapTargetRef = useRef<{
     monitorX: number;
@@ -130,7 +132,11 @@ export function useFloatingBall() {
     if (e.button !== 0) return;
     e.preventDefault();
 
+    // 拖拽时立即关闭菜单
+    await FloatingBall.hideMenu();
+
     setIsDragging(true);
+    wasDraggedRef.current = false;
     const win = windowRef.current;
     const [pos, factor] = await Promise.all([
       win.outerPosition(),
@@ -146,6 +152,11 @@ export function useFloatingBall() {
     };
   };
 
+  const handleClick = () => {
+    if (wasDraggedRef.current) return;
+    FloatingBall.showMenu();
+  };
+
   // 拖拽过程中与结束后的逻辑
   useEffect(() => {
     if (!isDragging) return;
@@ -154,10 +165,14 @@ export function useFloatingBall() {
       const { startX, startY, startWinX, startWinY, scaleFactor } =
         dragRef.current;
 
+      const dist = Math.sqrt(
+        (e.screenX - startX) ** 2 + (e.screenY - startY) ** 2,
+      );
+      if (dist >= 5) {
+        wasDraggedRef.current = true;
+      }
+
       if (snapSideRef.current) {
-        const dist = Math.sqrt(
-          (e.screenX - startX) ** 2 + (e.screenY - startY) ** 2,
-        );
         if (dist > 5) {
           setSnapSide(null);
           snapTargetRef.current = null;
@@ -204,9 +219,10 @@ export function useFloatingBall() {
         const mouseX = kIsMac ? mx * scale : mx;
         const mouseY = kIsMac ? my * scale : my;
 
-        let isHit = false;
+        // 检测悬浮球
+        let isBallHit = false;
         if (lastHit || leaveTimer !== null) {
-          isHit =
+          isBallHit =
             mouseX >= x &&
             mouseX <= x + width &&
             mouseY >= y &&
@@ -214,13 +230,13 @@ export function useFloatingBall() {
         } else {
           const side = snapSideRef.current;
           if (side === 'left') {
-            isHit =
+            isBallHit =
               mouseX >= x &&
               mouseX <= x + FloatingBall.visibleWidth * scale &&
               mouseY >= y &&
               mouseY <= y + height;
           } else if (side === 'right') {
-            isHit =
+            isBallHit =
               mouseX >= x + width - FloatingBall.visibleWidth * scale &&
               mouseX <= x + width &&
               mouseY >= y &&
@@ -228,13 +244,26 @@ export function useFloatingBall() {
           } else {
             const ballWidth = FloatingBall.width * scale;
             const margin = FloatingBall.margin * scale;
-            isHit =
+            isBallHit =
               mouseX >= x + margin &&
               mouseX <= x + margin + ballWidth &&
               mouseY >= y + margin &&
               mouseY <= y + margin + ballWidth;
           }
         }
+
+        // 检测菜单
+        let isMenuHit = false;
+        if (FloatingBall.menuRect) {
+          const { x: mx, y: my, width: mw, height: mh } = FloatingBall.menuRect;
+          isMenuHit =
+            mouseX >= mx &&
+            mouseX <= mx + mw &&
+            mouseY >= my &&
+            mouseY <= my + mh;
+        }
+
+        const isHit = isBallHit || isMenuHit;
 
         if (isHit !== lastHit) {
           lastHit = isHit;
@@ -243,14 +272,37 @@ export function useFloatingBall() {
             if (leaveTimer) clearTimeout(leaveTimer);
             leaveTimer = null;
             await win.setIgnoreCursorEvents(false);
-            await win.setFocus();
             setIsHovered(true);
+
+            if (isBallHit) {
+              // 鼠标在球上，确保球窗口获得焦点，方便拖拽
+              await win.setFocus();
+              await FloatingBall.showMenu();
+            } else if (isMenuHit) {
+              // 鼠标在菜单上，给菜单焦点
+              const menuWin = await getWebviewWindow('floating-menu');
+              if (menuWin) {
+                await menuWin.setFocus();
+              }
+            }
           } else {
             await win.setIgnoreCursorEvents(true);
-            leaveTimer = window.setTimeout(() => {
+            leaveTimer = window.setTimeout(async () => {
               setIsHovered(false);
               leaveTimer = null;
+              await FloatingBall.hideMenu();
             }, FloatingBall.snapDelay);
+          }
+        } else if (isHit) {
+          // 持续检测焦点切换
+          if (isBallHit) {
+            const isFocused = await windowRef.current.isFocused();
+            if (!isFocused) await windowRef.current.setFocus();
+          } else if (isMenuHit) {
+            const menuWin = await getWebviewWindow('floating-menu');
+            if (menuWin && !(await menuWin.isFocused())) {
+              await menuWin.setFocus();
+            }
           }
         }
       });
@@ -317,5 +369,5 @@ export function useFloatingBall() {
     };
   }, [updateWindowRectCache, checkSnap]);
 
-  return { isDragging, isHovered, snapSide, handleDragStart };
+  return { isDragging, isHovered, snapSide, handleDragStart, handleClick };
 }
