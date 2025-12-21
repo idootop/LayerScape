@@ -54,9 +54,6 @@ pub fn set_window_level(app: tauri::AppHandle, label: String, level: String) -> 
                     crate::windows_api::attach_to_wallpaper_worker(hwnd)?;
                 } else {
                     crate::windows_api::detach_from_wallpaper_worker(hwnd)?;
-                    window
-                        .set_always_on_bottom(true)
-                        .map_err(|e| e.to_string())?;
                 }
             }
         }

@@ -1,8 +1,10 @@
 #[cfg(target_os = "windows")]
-use windows_sys::Win32::Foundation::{HWND, LPARAM, WPARAM};
+use windows_sys::Win32::Foundation::{HWND, LPARAM};
 #[cfg(target_os = "windows")]
 use windows_sys::Win32::UI::WindowsAndMessaging::{
-    EnumWindows, FindWindowExW, FindWindowW, SMTO_NORMAL, SendMessageTimeoutW, SetParent,
+    EnumWindows, FindWindowExW, FindWindowW, GWL_EXSTYLE, GetWindowLongW, HWND_BOTTOM, SMTO_NORMAL,
+    SWP_NOMOVE, SWP_NOSIZE, SendMessageTimeoutW, SetParent, SetWindowLongW, SetWindowPos,
+    WS_EX_LAYERED,
 };
 
 #[cfg(target_os = "windows")]
@@ -16,54 +18,33 @@ fn to_wstring(str: &str) -> Vec<u16> {
 pub fn attach_to_wallpaper_worker(window_hwnd: isize) -> Result<(), String> {
     let window_hwnd = window_hwnd as HWND;
     unsafe {
-        // 1. 查找 Progman
-        let progman_class = to_wstring("Progman");
-        let progman = FindWindowW(progman_class.as_ptr(), std::ptr::null());
+        // 1. 获取 Progman
+        let progman = FindWindowW(to_wstring("Progman").as_ptr(), std::ptr::null());
 
-        // 2. 发送 0x052C 消息生成 WorkerW
-        let mut result: usize = 0;
-        SendMessageTimeoutW(
-            progman,
-            0x052C,
-            0 as WPARAM,
-            0 as LPARAM,
-            SMTO_NORMAL,
-            1000,
-            &mut result,
-        );
+        // 2. 触发 WorkerW 的创建
+        SendMessageTimeoutW(progman, 0x052C, 0, 0, SMTO_NORMAL, 1000, &mut 0);
 
-        // 3. 查找正确的 WorkerW
+        // 3. 寻找承载壁纸的 WorkerW
         let mut workerw: HWND = 0 as HWND;
 
-        // windows-sys 中回调函数的返回值通常是 i32 (1 为继续，0 为停止)
+        // 我们需要找到那个拥有 SHELLDLL_DefView 的 WorkerW 的 *兄弟* 窗口
         unsafe extern "system" fn enum_window_callback(top_handle: HWND, lparam: LPARAM) -> i32 {
-            let shell_view_name = [
-                83, 72, 69, 76, 76, 68, 76, 76, 95, 68, 101, 102, 86, 105, 101, 119, 0,
-            ];
-
-            let shell_dll_def_view = FindWindowExW(
+            let shell_view = FindWindowExW(
                 top_handle,
                 0 as HWND,
-                shell_view_name.as_ptr(),
+                to_wstring("SHELLDLL_DefView").as_ptr(),
                 std::ptr::null(),
             );
 
-            if shell_dll_def_view != 0 as HWND {
+            if shell_view != 0 as HWND {
+                // 找到了包含图标层的窗口，那么壁纸层通常是它的下一个兄弟 WorkerW 窗口
                 let workerw_ptr = lparam as *mut HWND;
-
-                let workerw_name = [87, 111, 114, 107, 101, 114, 87, 0];
-
-                let next_workerw = FindWindowExW(
+                *workerw_ptr = FindWindowExW(
                     0 as HWND,
-                    top_handle,
-                    workerw_name.as_ptr(),
+                    top_handle, // 寻找在这个窗口之后的窗口
+                    to_wstring("WorkerW").as_ptr(),
                     std::ptr::null(),
                 );
-
-                if next_workerw != 0 as HWND {
-                    *workerw_ptr = next_workerw;
-                }
-                return 0; // 找到目标，停止枚举
             }
             1 // 继续枚举
         }
@@ -71,10 +52,15 @@ pub fn attach_to_wallpaper_worker(window_hwnd: isize) -> Result<(), String> {
         EnumWindows(Some(enum_window_callback), &mut workerw as *mut _ as LPARAM);
 
         if workerw != 0 as HWND {
+            // 4. 设置窗口为透明穿透层
+            let ex_style = GetWindowLongW(window_hwnd, GWL_EXSTYLE);
+            SetWindowLongW(window_hwnd, GWL_EXSTYLE, ex_style | WS_EX_LAYERED as i32);
             SetParent(window_hwnd, workerw);
             Ok(())
         } else {
-            Err("未找到 WorkerW 窗口".into())
+            // 如果没找到，尝试 fallback 到 progman
+            SetParent(window_hwnd, progman);
+            Ok(())
         }
     }
 }
@@ -84,6 +70,20 @@ pub fn detach_from_wallpaper_worker(window_hwnd: isize) -> Result<(), String> {
     let window_hwnd = window_hwnd as HWND;
     unsafe {
         SetParent(window_hwnd, 0 as HWND);
+        // 3. 调整窗口 Z 序：放到桌面图标之上、任务栏之下
+        let result = SetWindowPos(
+            window_hwnd,
+            HWND_BOTTOM,
+            0,
+            0,
+            0,
+            0,
+            SWP_NOMOVE | SWP_NOSIZE,
+        );
+
+        if result == 0 {
+            return Err("Failed to set window Z-order".to_string());
+        }
     }
     Ok(())
 }

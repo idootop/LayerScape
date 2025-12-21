@@ -6,7 +6,6 @@ import { getWebviewWindow } from '../window';
 import { kFloatingMenuItems } from './FloatingMenu';
 
 // !FIXME: 悬浮窗菜单不正常
-// !FIXME: windows 桌面壁纸层不在图标之下
 class _FloatingBall {
   width = 60; // 悬浮球宽度
   height = 60; // 悬浮球高度
