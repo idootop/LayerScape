@@ -3,6 +3,7 @@ mod floating_ball;
 mod inputs;
 mod wallpaper;
 mod window;
+mod windows_api;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {

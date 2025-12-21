@@ -10,7 +10,7 @@ pub async fn create_wallpaper_window(
     width: u32,
     height: u32,
 ) -> Result<(), String> {
-    // 1. 异步构建窗口（避免 Windows 主线程阻塞）
+    // 异步构建窗口（避免 Windows 主线程阻塞）
     let builder =
         tauri::WebviewWindowBuilder::new(&app, &label, tauri::WebviewUrl::App(url.into()))
             .title("Wallpaper")
@@ -25,18 +25,7 @@ pub async fn create_wallpaper_window(
         .build()
         .map_err(|e| format!("窗口创建失败: {}", e))?;
 
-    // 2. 先设置窗口位置和大小（通用操作，无线程限制）
-    window
-        .set_position(tauri::PhysicalPosition::new(x, y))
-        .map_err(|e| format!("设置窗口位置失败: {}", e))?;
-    window
-        .set_size(tauri::PhysicalSize::new(width, height))
-        .map_err(|e| format!("设置窗口大小失败: {}", e))?;
-
-    // 3. 显示窗口（完善错误处理，不再忽略）
-    window.show().map_err(|e| format!("显示窗口失败: {}", e))?;
-
-    // 4. macOS 特有逻辑：强制在主线程执行 UI 操作
+    // macOS 特有逻辑：强制在主线程执行 UI 操作
     #[cfg(target_os = "macos")]
     {
         use objc2_app_kit::{NSWindow, NSWindowCollectionBehavior, NSWindowLevel};
@@ -73,6 +62,28 @@ pub async fn create_wallpaper_window(
             })
             .map_err(|e| format!("macOS 主线程执行窗口配置失败: {}", e))?;
     }
+
+    // Windows 特有逻辑：将窗口挂载到 WorkerW
+    #[cfg(target_os = "windows")]
+    {
+        use tauri::window::HasWindowHandle;
+        if let Ok(handle) = window.window_handle() {
+            if let raw_window_handle::RawWindowHandle::Win32(h) = handle.as_raw() {
+                crate::windows_api::attach_to_wallpaper_worker(h.hwnd.get() as isize)?;
+            }
+        }
+    }
+
+    // 设置窗口位置和大小
+    window
+        .set_position(tauri::PhysicalPosition::new(x, y))
+        .map_err(|e| format!("设置窗口位置失败: {}", e))?;
+    window
+        .set_size(tauri::PhysicalSize::new(width, height))
+        .map_err(|e| format!("设置窗口大小失败: {}", e))?;
+
+    // 显示窗口
+    window.show().map_err(|e| format!("显示窗口失败: {}", e))?;
 
     Ok(())
 }

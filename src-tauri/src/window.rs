@@ -44,6 +44,24 @@ pub fn set_window_level(app: tauri::AppHandle, label: String, level: String) -> 
         };
     }
 
+    #[cfg(target_os = "windows")]
+    {
+        use tauri::window::HasWindowHandle;
+        if let Ok(handle) = window.window_handle() {
+            if let raw_window_handle::RawWindowHandle::Win32(h) = handle.as_raw() {
+                let hwnd = h.hwnd.get() as isize;
+                if is_below {
+                    crate::windows_api::attach_to_wallpaper_worker(hwnd)?;
+                } else {
+                    crate::windows_api::detach_from_wallpaper_worker(hwnd)?;
+                    window
+                        .set_always_on_bottom(true)
+                        .map_err(|e| e.to_string())?;
+                }
+            }
+        }
+    }
+
     Ok(())
 }
 
