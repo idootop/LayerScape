@@ -8,9 +8,9 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { onGlobalMouseEvent } from '@/core/mouse';
 
-import { FloatingBall } from '.';
 import { useListen } from '../event';
 import { getWebviewWindow } from '../window';
+import { FloatingBall } from '.';
 
 export type SnapSide = 'left' | 'right' | null;
 

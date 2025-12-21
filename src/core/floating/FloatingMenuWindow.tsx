@@ -2,8 +2,8 @@ import type React from 'react';
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
-import { FloatingBall } from '.';
 import { useListen } from '../event';
+import { FloatingBall } from '.';
 import { kFloatingMenuItems } from './FloatingMenu';
 
 export function FloatingMenuWindow() {

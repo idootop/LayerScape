@@ -19,14 +19,14 @@
 }
 
 body {
-  margin: 0;
-  padding: 0;
-  font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
-  background-color: transparent;
-  color: var(--text-color);
   width: 100vw;
   height: 100vh;
+  padding: 0;
+  margin: 0;
   overflow: hidden;
+  font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
+  color: var(--text-color);
+  background-color: transparent;
 }
 
 #root {
@@ -48,14 +48,14 @@ p {
 
 /* Sidebar Styling */
 .sidebar {
-  width: 60px;
-  background-color: var(--sidebar-bg);
   display: flex;
   flex-direction: column;
   align-items: center;
+  width: 60px;
   padding-top: 20px;
-  border-right: 1px solid rgba(0, 0, 0, 0.1);
   user-select: none;
+  background-color: var(--sidebar-bg);
+  border-right: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .sidebar-header {
@@ -63,16 +63,18 @@ p {
 }
 
 .nav-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 40px;
   height: 40px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
   margin-bottom: 10px;
-  border-radius: 8px;
   color: var(--text-color);
-  transition: background-color 0.2s, color 0.2s;
   cursor: pointer;
+  border-radius: 8px;
+  transition:
+    background-color 0.2s,
+    color 0.2s;
 }
 
 .nav-item:hover {
@@ -80,17 +82,17 @@ p {
 }
 
 .nav-item.active {
-  background-color: var(--active-color);
   color: var(--accent-color);
+  background-color: var(--active-color);
 }
 
 /* Content Area Styling */
 .content-area {
+  display: flex;
   flex: 1;
+  flex-direction: column;
   padding: 20px;
   overflow-y: auto;
-  display: flex;
-  flex-direction: column;
 }
 
 .module-page,
@@ -104,17 +106,17 @@ p {
 }
 
 .placeholder-content {
-  margin-top: 20px;
-  padding: 40px;
-  border: 2px dashed var(--hover-color);
-  border-radius: 10px;
   display: flex;
   flex-direction: column;
   gap: 10px;
-  justify-content: center;
   align-items: center;
-  color: #888;
+  justify-content: center;
   height: 200px;
+  padding: 40px;
+  margin-top: 20px;
+  color: #888;
+  border: 2px dashed var(--hover-color);
+  border-radius: 10px;
 }
 
 /* Features Grid for Home Page */
@@ -126,16 +128,16 @@ p {
 }
 
 .feature-card {
-  background-color: var(--sidebar-bg);
-  padding: 20px;
-  border-radius: 10px;
-  transition: transform 0.2s;
-  text-decoration: none; /* Remove underline from links */
-  color: var(--text-color); /* Inherit text color */
   display: flex;
   flex-direction: column;
-  justify-content: center;
   gap: 20px;
+  justify-content: center;
+  padding: 20px;
+  color: var(--text-color); /* Inherit text color */
+  text-decoration: none; /* Remove underline from links */
+  background-color: var(--sidebar-bg);
+  border-radius: 10px;
+  transition: transform 0.2s;
 }
 
 .feature-card:hover {
