@@ -74,12 +74,11 @@ export const WallpaperWidget: React.FC = () => {
     if (!canvas) return;
 
     const rect = canvas.getBoundingClientRect();
-    const pixelRatio = window.devicePixelRatio || 1;
 
-    // 将鼠标坐标转换为 Canvas 坐标（考虑 devicePixelRatio）
+    // 将鼠标坐标转换为 Canvas 坐标
     mousePosRef.current = {
-      x: (e.clientX - rect.left) * pixelRatio,
-      y: (e.clientY - rect.top) * pixelRatio,
+      x: (e.clientX - rect.left) * devicePixelRatio,
+      y: (e.clientY - rect.top) * devicePixelRatio,
     };
   }, []);
 
@@ -91,11 +90,10 @@ export const WallpaperWidget: React.FC = () => {
     if (!ctx) return;
 
     // 初始化 Canvas 大小
-    const pixelRatio = window.devicePixelRatio || 1;
-    canvas.width = window.innerWidth * pixelRatio;
-    canvas.height = window.innerHeight * pixelRatio;
-    canvas.style.width = `${window.innerWidth}px`;
-    canvas.style.height = `${window.innerHeight}px`;
+    canvas.width = window.innerWidth * devicePixelRatio;
+    canvas.height = window.innerHeight * devicePixelRatio;
+    canvas.style.width = window.innerWidth + 'px';
+    canvas.style.height = window.innerHeight + 'px';
 
     let animationFrameId: number;
     let particles: {
@@ -113,8 +111,8 @@ export const WallpaperWidget: React.FC = () => {
         particles.push({
           x: Math.random() * canvas.width,
           y: Math.random() * canvas.height,
-          vx: (Math.random() - 0.5) * 2 * pixelRatio,
-          vy: (Math.random() - 0.5) * 2 * pixelRatio,
+          vx: (Math.random() - 0.5) * 2 * devicePixelRatio,
+          vy: (Math.random() - 0.5) * 2 * devicePixelRatio,
           color: `hsl(${Math.random() * 360}, 70%, 50%)`,
         });
       }
@@ -140,10 +138,10 @@ export const WallpaperWidget: React.FC = () => {
         const dy = p.y - mousePos.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
 
-        const interactDist = 200 * pixelRatio;
-        const lineDist = 150 * pixelRatio;
-        const radiusLarge = 10 * pixelRatio;
-        const radiusSmall = 4 * pixelRatio;
+        const interactDist = 200 * devicePixelRatio;
+        const lineDist = 150 * devicePixelRatio;
+        const radiusLarge = 10 * devicePixelRatio;
+        const radiusSmall = 4 * devicePixelRatio;
 
         const radius = dist < interactDist ? radiusLarge : radiusSmall;
 
@@ -158,7 +156,7 @@ export const WallpaperWidget: React.FC = () => {
           ctx.moveTo(p.x, p.y);
           ctx.lineTo(mousePos.x, mousePos.y);
           ctx.strokeStyle = `rgba(255, 255, 255, ${1 - dist / lineDist})`;
-          ctx.lineWidth = 1 * pixelRatio;
+          ctx.lineWidth = 1 * devicePixelRatio;
           ctx.stroke();
         }
       });
