@@ -46,7 +46,7 @@ pub fn set_window_level(app: tauri::AppHandle, label: String, level: String) -> 
 
     #[cfg(target_os = "windows")]
     {
-        use tauri::window::HasWindowHandle;
+        use raw_window_handle::HasWindowHandle;
         if let Ok(handle) = window.window_handle() {
             if let raw_window_handle::RawWindowHandle::Win32(h) = handle.as_raw() {
                 let hwnd = h.hwnd.get() as isize;

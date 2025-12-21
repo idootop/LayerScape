@@ -66,7 +66,7 @@ pub async fn create_wallpaper_window(
     // Windows 特有逻辑：将窗口挂载到 WorkerW
     #[cfg(target_os = "windows")]
     {
-        use tauri::window::HasWindowHandle;
+        use raw_window_handle::HasWindowHandle;
         if let Ok(handle) = window.window_handle() {
             if let raw_window_handle::RawWindowHandle::Win32(h) = handle.as_raw() {
                 crate::windows_api::attach_to_wallpaper_worker(h.hwnd.get() as isize)?;
