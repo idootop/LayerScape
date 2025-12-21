@@ -10,17 +10,21 @@ pub async fn create_floating_ball_window(
     shadow: bool,
 ) -> Result<(), String> {
     // 1. 异步创建窗口（避免 Windows 主线程阻塞）
-    let window = tauri::WebviewWindowBuilder::new(&app, &label, tauri::WebviewUrl::App(url.into()))
-        .decorations(false)
-        .transparent(true)
-        .skip_taskbar(true)
-        .always_on_top(true)
-        .shadow(shadow)
-        .resizable(false)
-        .build()
-        .map_err(|e| e.to_string())?;
+    let mut builder =
+        tauri::WebviewWindowBuilder::new(&app, &label, tauri::WebviewUrl::App(url.into()))
+            .decorations(false)
+            .transparent(true)
+            .skip_taskbar(true)
+            .always_on_top(true)
+            .shadow(shadow)
+            .resizable(false);
 
-    // 2. 设置窗口位置和大小（通用操作，无线程限制）
+    if label == "floating-menu" {
+        builder = builder.visible(false);
+    }
+
+    let window = builder.build().map_err(|e| e.to_string())?;
+
     window
         .set_position(tauri::PhysicalPosition::new(x, y))
         .map_err(|e| e.to_string())?;

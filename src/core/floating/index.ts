@@ -5,7 +5,6 @@ import { availableMonitors, primaryMonitor } from '@tauri-apps/api/window';
 import { getWebviewWindow } from '../window';
 import { kFloatingMenuItems } from './FloatingMenu';
 
-// !FIXME: 悬浮窗菜单不正常
 class _FloatingBall {
   width = 60; // 悬浮球宽度
   height = 60; // 悬浮球高度
@@ -72,14 +71,22 @@ class _FloatingBall {
     });
   }
 
+  _creatingMenu = false;
+
   // 显示菜单 (左键默认菜单)
   async showMenu() {
+    if (this._creatingMenu) return;
+    this._creatingMenu = true;
     await this._showMenuInternal('default');
+    this._creatingMenu = false;
   }
 
   // 显示右键菜单
   async showContextMenu() {
+    if (this._creatingMenu) return;
+    this._creatingMenu = true;
     await this._showMenuInternal('context');
+    this._creatingMenu = false;
   }
 
   private async _showMenuInternal(mode: 'default' | 'context') {
