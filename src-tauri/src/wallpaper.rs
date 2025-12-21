@@ -1,3 +1,4 @@
+#[cfg(target_os = "macos")]
 static NS_DESKTOP_WINDOW_LEVEL: isize = -2147483628;
 
 #[tauri::command]
