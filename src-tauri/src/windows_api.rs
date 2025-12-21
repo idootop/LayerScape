@@ -29,22 +29,24 @@ pub fn attach_to_wallpaper_worker(window_hwnd: isize) -> Result<(), String> {
 
         // 我们需要找到那个拥有 SHELLDLL_DefView 的 WorkerW 的 *兄弟* 窗口
         unsafe extern "system" fn enum_window_callback(top_handle: HWND, lparam: LPARAM) -> i32 {
-            let shell_view = FindWindowExW(
-                top_handle,
-                0 as HWND,
-                to_wstring("SHELLDLL_DefView").as_ptr(),
-                std::ptr::null(),
-            );
-
-            if shell_view != 0 as HWND {
-                // 找到了包含图标层的窗口，那么壁纸层通常是它的下一个兄弟 WorkerW 窗口
-                let workerw_ptr = lparam as *mut HWND;
-                *workerw_ptr = FindWindowExW(
+            unsafe {
+                let shell_view = FindWindowExW(
+                    top_handle,
                     0 as HWND,
-                    top_handle, // 寻找在这个窗口之后的窗口
-                    to_wstring("WorkerW").as_ptr(),
+                    to_wstring("SHELLDLL_DefView").as_ptr(),
                     std::ptr::null(),
                 );
+
+                if shell_view != 0 as HWND {
+                    // 找到了包含图标层的窗口，那么壁纸层通常是它的下一个兄弟 WorkerW 窗口
+                    let workerw_ptr = lparam as *mut HWND;
+                    *workerw_ptr = FindWindowExW(
+                        0 as HWND,
+                        top_handle, // 寻找在这个窗口之后的窗口
+                        to_wstring("WorkerW").as_ptr(),
+                        std::ptr::null(),
+                    );
+                }
             }
             1 // 继续枚举
         }
