@@ -1,10 +1,12 @@
-import { listen, type UnlistenFn } from "@tauri-apps/api/event";
+import { listen, type UnlistenFn } from '@tauri-apps/api/event';
+
+import { kIsMac } from './utils';
 
 export interface GlobalMouseEvent {
   x: number;
   y: number;
-  event: "move" | "drag" | "down" | "up";
-  button: "left" | "right" | "none";
+  event: 'move' | 'drag' | 'down' | 'up';
+  button: 'left' | 'right' | 'none';
 }
 
 export type GlobalMouseEventHandler = (event: GlobalMouseEvent) => void;
@@ -15,9 +17,12 @@ export type GlobalMouseEventHandler = (event: GlobalMouseEvent) => void;
  * @returns 取消监听的函数
  */
 export async function onGlobalMouseEvent(
-  handler: GlobalMouseEventHandler
+  handler: GlobalMouseEventHandler,
 ): Promise<UnlistenFn> {
-  return await listen<GlobalMouseEvent>("global-mouse-event", (event) => {
+  return await listen<GlobalMouseEvent>('global-mouse-event', (event) => {
+    const scale = kIsMac ? window.devicePixelRatio : 1;
+    event.payload.x = event.payload.x * scale;
+    event.payload.y = event.payload.y * scale;
     handler(event.payload);
   });
 }

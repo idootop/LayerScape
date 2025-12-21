@@ -7,7 +7,6 @@ import {
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { onGlobalMouseEvent } from '@/core/mouse';
-import { kIsMac } from '@/core/utils';
 
 import { FloatingBall } from '.';
 import { useListen } from '../event';
@@ -221,8 +220,8 @@ export function useFloatingBall() {
 
         const { x, y, width, height } = windowRectRef.current;
         const scale = dragRef.current.scaleFactor;
-        const mouseX = kIsMac ? mx * scale : mx;
-        const mouseY = kIsMac ? my * scale : my;
+        const mouseX = mx;
+        const mouseY = my;
 
         // 检测悬浮球
         let isBallHit = false;

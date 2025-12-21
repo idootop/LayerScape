@@ -54,8 +54,8 @@ export const useWallpaperInteractions = () => {
 
     // 转换成物理坐标
     const dpr = window.devicePixelRatio;
-    const screenX = payload.x * dpr;
-    const screenY = payload.y * dpr;
+    const screenX = payload.x;
+    const screenY = payload.y;
 
     // 判断是否在窗口内
     const isInWindow =
